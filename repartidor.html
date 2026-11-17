@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MAKIPAP - Repartidor</title>
+<style>
+  :root { font-family: system-ui, -apple-system, sans-serif; color:#111827; background:#f4f6f8; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:16px; max-width:480px; margin:0 auto; }
+  header { background:#1a1a2e; color:#fff; padding:16px; border-radius:12px; text-align:center; margin-bottom:16px; }
+  header h1 { margin:0; font-size:18px; }
+  header small { color:#aaa; font-size:12px; }
+  .card { background:#fff; border-radius:12px; padding:16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  .big-number { font-size:36px; font-weight:bold; color:#00838f; margin:8px 0; text-align:center; }
+  input.sel { width:100%; padding:10px; font-size:15px; margin:4px 0 10px 0; border:1px solid #ccc; border-radius:8px; }
+  label.fld { font-size:12px; color:#555; display:block; }
+  button.btn { border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:bold; color:#fff; width:100%; margin:4px 0; cursor:pointer; }
+  .tl { background:#00838f; } .g { background:#2e7d32; } .w { background:#25d366; }
+  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
+  th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+  th { background:#333; color:#fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛵 MAKIPAP EIRL</h1>
+  <small>Control Diario del Repartidor</small>
+</header>
+
+<div class="card" style="text-align:center;">
+  <div style="font-size:14px; color:#555;">Acumulado Pendiente de Pago</div>
+  <div class="big-number" id="lblRepPendiente">$0</div>
+  <div style="font-size:12px; color:#666;" id="lblRepEntregas">0 entregas pendientes</div>
+</div>
+
+<div class="card">
+  <h3>➕ Registrar Repartos del Día</h3>
+  <label class="fld">Fecha</label>
+  <input class="sel" id="rFecha" type="date">
+  <label class="fld">Cantidad de entregas</label>
+  <input class="sel" id="rCant" type="number" min="1" value="1" oninput="calcTotalRep()">
+  <label class="fld">Valor por entrega ($)</label>
+  <input class="sel" id="rValor" type="number" value="2000" oninput="calcTotalRep()">
+  <label class="fld">Total del día ($)</label>
+  <input class="sel" id="rTotal" type="number" value="2000" readonly style="background:#eee; font-weight:bold;">
+  
+  <button class="btn tl" onclick="guardarReparto()">💾 Guardar Jornada</button>
+  <button class="btn w" onclick="enviarResumenWsp()">💬 Enviar Resumen por WhatsApp</button>
+</div>
+
+<div class="card">
+  <h3>📋 Historial de Repartos y Pagos</h3>
+  <div style="overflow-x:auto;">
+    <table id="tblRepartos">
+      <tr><th>Fecha</th><th>Entregas</th><th>Monto</th><th>Estado</th><th>Acción</th></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
+function hoy(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+let registros = [];
+try { registros = JSON.parse(localStorage.getItem("mkp_repartidor_hist") || "[]"); } catch(e) {}
+
+function persist(){ localStorage.setItem("mkp_repartidor_hist", JSON.stringify(registros)); }
+
+function calcTotalRep(){
+  const c = parseInt(document.getElementById("rCant").value) || 0;
+  const v = parseInt(document.getElementById("rValor").value) || 0;
+  document.getElementById("rTotal").value = c * v;
+}
+
+function guardarReparto(){
+  const f = document.getElementById("rFecha").value || hoy();
+  const c = parseInt(document.getElementById("rCant").value) || 0;
+  const t = parseInt(document.getElementById("rTotal").value) || 0;
+  if(c <= 0 || t <= 0){ alert("Ingresa una cantidad válida."); return; }
+
+  registros.unshift({ id: Date.now(), fecha: f, entregas: c, monto: t, pagado: false });
+  persist();
+  render();
+  alert("Jornada registrada.");
+}
+
+function marcarPagado(id){
+  const item = registros.find(r => r.id === id);
+  if(item && confirm(`¿Marcar el reparto del ${item.fecha} (${money(item.monto)}) como PAGADO?`)){
+    item.pagado = true;
+    persist();
+    render();
+  }
+}
+
+function render(){
+  let pendMonto = 0, pendEntregas = 0;
+  let html = "<tr><th>Fecha</th><th>Entregas</th><th>Monto</th><th>Estado</th><th>Acción</th></tr>";
+
+  registros.forEach(r => {
+    if(!r.pagado){
+      pendMonto += r.monto;
+      pendEntregas += r.entregas;
+    }
+    const btn = r.pagado ? "✓" : `<button style="background:#2e7d32;color:#fff;border:none;padding:4px 8px;border-radius:4px;" onclick="marcarPagado(${r.id})">Cobrar</button>`;
+    html += `<tr><td>${r.fecha}</td><td>${r.entregas}</td><td>${money(r.monto)}</td><td>${r.pagado ? "Pagado" : "Pendiente"}</td><td>${btn}</td></tr>`;
+  });
+
+  document.getElementById("lblRepPendiente").textContent = money(pendMonto);
+  document.getElementById("lblRepEntregas").textContent = `${pendEntregas} entrega(s) pendiente(s) de pago`;
+  document.getElementById("tblRepartos").innerHTML = registros.length ? html : "<tr><td colspan=5>Sin registros aún.</td></tr>";
+}
+
+function enviarResumenWsp(){
+  const pend = registros.filter(r => !r.pagado);
+  const tot = pend.reduce((s, r) => s + r.monto, 0);
+  const ent = pend.reduce((s, r) => s + r.entregas, 0);
+  const msg = `🛵 *MAKIPAP - Resumen de Repartos*\n\nEntregas pendientes: ${ent}\n💰 *Total a pagar:* ${money(tot)}\n\nEnviado desde app de reparto.`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById("rFecha").value = hoy();
+  render();
+});
+</script>
+</body>
+</html>
