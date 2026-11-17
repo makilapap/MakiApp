@@ -210,7 +210,7 @@
 <script>
 // ================= CONFIG =================
 const EMPRESA="MAKIPAP EIRL", RUT="78.519.024-6", GIRO="Elaboración y venta de sushi con retiro o reparto a domicilio";
-const IVA=0.19, PPM=0.0025, SUELDO_PCT=0.27, SUELDO_MIN=20000, UMBRAL_VENTAS=67000;
+const IVA=0.19, PPM=0.0025, SUELDO_PCT=0.27, SUELDO_MIN=20000;
 const DIAS_PERIODO=10, INICIO_CLAUDIO="2026-11-09";
 const MENU=[["MAKI 1",8000],["MAKI 2",10000],["MAKI 3",12000],["MAKI 4",14000],["MAKI 5",17000],
 ["Maki Burger de pollo",7000],["Maki Burger de Camarón",8000],["Handroll de pollo",3000],
@@ -270,7 +270,7 @@ function hoy(){
 }
 function calcNetoIva(t){ const n=Math.round(t/1.19); return [n, t-n]; }
 function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
-function calcSueldo(totalDia){ return totalDia<=UMBRAL_VENTAS ? SUELDO_MIN : Math.round(totalDia*SUELDO_PCT); }
+function calcSueldo(totalDia){ return Math.max(SUELDO_MIN, Math.round(totalDia*SUELDO_PCT)); }
 function claudioDesde(f){ return f>=INICIO_CLAUDIO; }
 
 function nivelStock(tipo,valor,umbral){
