@@ -9,7 +9,7 @@
 <style>
   :root { font-family: system-ui, -apple-system, sans-serif; color:#111827; background:#f4f6f8; }
   * { box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin:0; padding:20px; max-width:480px; margin:0 auto; }
+  body { margin:0; padding:16px; max-width:480px; margin:0 auto; }
   header { background:#1a1a2e; color:#fff; padding:16px; border-radius:12px; text-align:center; margin-bottom:16px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
   header h1 { margin:0; font-size:18px; }
   header small { color:#aaa; font-size:12px; }
@@ -17,6 +17,7 @@
   .big-number { font-size:36px; font-weight:bold; color:#2e7d32; margin:10px 0; }
   .info-box { font-size:14px; color:#555; margin-bottom:8px; }
   button.btn { border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:bold; color:#fff; width:100%; margin-top:10px; cursor:pointer; background:#1565c0; }
+  .btn-green { background:#2e7d32; }
   table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; text-align:left; }
   th, td { border:1px solid #ddd; padding:8px; }
   th { background:#333; color:#fff; }
@@ -37,13 +38,13 @@
 </div>
 
 <div class="card" style="text-align: left;">
-  <h3>📅 Próximo periodo de retiro</h3>
-  <p class="muted" id="lblProximoPago">Calculando fechas de cobro (máx. 10 días hábiles)...</p>
-  <button class="btn" onclick="actualizarPanelCindy()">🔄 Actualizar Datos</button>
+  <h3>📅 Estado del Periodo</h3>
+  <p class="muted" id="lblProximoPago">Sincronizando datos de la aplicación...</p>
+  <button class="btn btn-green" onclick="actualizarPanelCindy()">🔄 Sincronizar y Actualizar</button>
 </div>
 
 <div class="card" style="text-align: left;">
-  <h3>📋 Historial de Días y Sueldos</h3>
+  <h3>📋 Historial General de Sueldos</h3>
   <div style="overflow-x:auto;">
     <table id="tblSueldosCindy">
       <tr><th>Fecha</th><th>Total Día</th><th>Sueldo Cindy</th><th>Estado</th></tr>
@@ -53,12 +54,17 @@
 
 <script>
 function load(k,d){ 
-  try{ const val = localStorage.getItem("mkp_"+k); return val !== null ? JSON.parse(val) : d; }catch(e){ return d; } 
+  try{ 
+    const val = localStorage.getItem("mkp_"+k); 
+    return val !== null ? JSON.parse(val) : d; 
+  }catch(e){ 
+    return d; 
+  } 
 }
 function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
-function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
 
 function actualizarPanelCindy(){
+  // Lee exactamente la misma base de datos de sueldos generada por la app principal
   const sueldos = load("sueldos", {});
   const fechas = Object.keys(sueldos).sort();
   
@@ -67,30 +73,34 @@ function actualizarPanelCindy(){
   
   fechas.reverse().forEach(f => {
     const item = sueldos[f];
+    // Verifica si fue pagado en la app principal
     const pagado = item.pagC ? "✓ Pagado" : "Pendiente";
+    
     if(!item.pagC && item.cindy > 0) {
       pendientes.push({fecha: f, sueldo: item.cindy});
     }
-    historialHtml += `<tr><td>${f}</td><td>${money(item.totalDia)}</td><td>${money(item.cindy)}</td><td>${pagado}</td></tr>`;
+    
+    historialHtml += `<tr><td>${f}</td><td>${money(item.totalDia)}</td><td>${money(item.cindy)}</td><td><b>${pagado}</b></td></tr>`;
   });
 
   const totalAcumulado = pendientes.reduce((sum, p) => sum + p.sueldo, 0);
   
   document.getElementById("lblTotalPendiente").textContent = money(totalAcumulado);
-  document.getElementById("lblDetalleDias").textContent = `${pendientes.length} día(s) hábil(es) acumulado(s)`;
+  document.getElementById("lblDetalleDias").textContent = `${pendientes.length} día(s) hábil(es) pendientes de cobro`;
   
   if(pendientes.length > 0) {
     const primerDia = pendientes[pendientes.length - 1].fecha;
     const ultimoDia = pendientes[0].fecha;
-    document.getElementById("lblProximoPago").innerHTML = `Periodo acumulado actual:<br><b>Desde:</b> ${primerDia} <br><b>Hasta:</b> ${ultimoDia} <br><br><i>Recuerda retirar cada 10 días hábiles.</i>`;
+    document.getElementById("lblProximoPago").innerHTML = `<b>Periodo pendiente actual:</b><br>Desde: ${primerDia} hasta ${ultimoDia}`;
   } else {
-    document.getElementById("lblProximoPago").textContent = "No hay sueldos pendientes de cobro en este momento.";
+    document.getElementById("lblProximoPago").textContent = "¡Todo al día! No hay sueldos pendientes de cobro actualmente.";
   }
 
   document.getElementById("tblSueldosCindy").innerHTML = 
-    "<tr><th>Fecha</th><th>Total Día</th><th>Sueldo Cindy</th><th>Estado</th></tr>" + (historialHtml || "<tr><td colspan=4>Sin registros de sueldo</td></tr>");
+    "<tr><th>Fecha</th><th>Total Día</th><th>Sueldo Cindy</th><th>Estado</th></tr>" + (historialHtml || "<tr><td colspan=4>Sin registros en el sistema todavía. Calcula los balances en la app principal.</td></tr>");
 }
 
+// Carga automática al abrir la página
 window.addEventListener('DOMContentLoaded', actualizarPanelCindy);
 </script>
 
