@@ -8,36 +8,47 @@
 <style>
   :root { font-family: system-ui, -apple-system, sans-serif; color:#111827; background:#f4f6f8; }
   * { box-sizing:border-box; }
-  body { margin:0; padding:16px; max-width:480px; margin:0 auto; }
+  body { margin:0; padding:16px; max-width:520px; margin:0 auto; }
   header { background:#1a1a2e; color:#fff; padding:16px; border-radius:12px; text-align:center; margin-bottom:16px; }
   header h1 { margin:0; font-size:18px; }
   header small { color:#aaa; font-size:12px; }
   .card { background:#fff; border-radius:12px; padding:16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
-  .big-number { font-size:36px; font-weight:bold; color:#00838f; margin:8px 0; text-align:center; }
-  input.sel { width:100%; padding:10px; font-size:15px; margin:4px 0 10px 0; border:1px solid #ccc; border-radius:8px; }
+  .big-number { font-size:38px; font-weight:bold; color:#00838f; margin:8px 0; text-align:center; }
+  .badge { display:inline-block; background:#e0f7fa; color:#006064; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold; margin-bottom:8px; }
+  input.sel, select.sel { width:100%; padding:10px; font-size:15px; margin:4px 0 10px 0; border:1px solid #ccc; border-radius:8px; background:#fff; }
   label.fld { font-size:12px; color:#555; display:block; }
   button.btn { border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:bold; color:#fff; width:100%; margin:4px 0; cursor:pointer; }
   .tl { background:#00838f; } .g { background:#2e7d32; } .w { background:#25d366; }
-  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
-  th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+  .filtros { display:flex; gap:6px; margin-bottom:10px; }
+  .filtros button { flex:1; padding:8px; border:1px solid #ccc; border-radius:6px; background:#f9f9f9; font-size:12px; font-weight:bold; cursor:pointer; }
+  .filtros button.active { background:#1a1a2e; color:#fff; border-color:#1a1a2e; }
+  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
+  th, td { border:1px solid #ddd; padding:7px 5px; text-align:left; }
   th { background:#333; color:#fff; }
+  tr.anulado { background:#ffebee; color:#9e9e9e; }
+  tr.anulado td.monto { text-decoration: line-through; }
+  .tag-ok { color:#2e7d32; font-weight:bold; }
+  .tag-pend { color:#ef6c00; font-weight:bold; }
+  .tag-anu { color:#c62828; font-weight:bold; font-size:11px; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>🛵 MAKIPAP EIRL</h1>
-  <small>Control Diario del Repartidor</small>
+  <small>Control e Historial del Repartidor</small>
 </header>
 
 <div class="card" style="text-align:center;">
+  <div id="syncBadge" class="badge" style="display:none;">✓ Historial actualizado desde el local</div>
   <div style="font-size:14px; color:#555;">Acumulado Pendiente de Pago</div>
   <div class="big-number" id="lblRepPendiente">$0</div>
   <div style="font-size:12px; color:#666;" id="lblRepEntregas">0 entregas pendientes</div>
+  <div style="font-size:11px; color:#888; margin-top:4px;" id="lblRepHistoricoPagado">Total histórico pagado: $0</div>
 </div>
 
 <div class="card">
-  <h3>➕ Registrar Repartos del Día</h3>
+  <h3>➕ Registrar Jornada de Reparto</h3>
   <label class="fld">Fecha</label>
   <input class="sel" id="rFecha" type="date">
   <label class="fld">Cantidad de entregas</label>
@@ -48,14 +59,20 @@
   <input class="sel" id="rTotal" type="number" value="2000" readonly style="background:#eee; font-weight:bold;">
   
   <button class="btn tl" onclick="guardarReparto()">💾 Guardar Jornada</button>
-  <button class="btn w" onclick="enviarResumenWsp()">💬 Enviar Resumen por WhatsApp</button>
+  <button class="btn w" onclick="enviarResumenWsp()">💬 Enviar Resumen al Local (WhatsApp)</button>
 </div>
 
 <div class="card">
-  <h3>📋 Historial de Repartos y Pagos</h3>
+  <h3>📋 Historial Completo de Repartos</h3>
+  <div class="filtros">
+    <button id="f-todos" class="active" onclick="setFiltro('todos')">Todos</button>
+    <button id="f-pend" onclick="setFiltro('pend')">Pendientes</button>
+    <button id="f-pag" onclick="setFiltro('pag')">Pagados</button>
+    <button id="f-anu" onclick="setFiltro('anu')">Anulados</button>
+  </div>
   <div style="overflow-x:auto;">
     <table id="tblRepartos">
-      <tr><th>Fecha</th><th>Entregas</th><th>Monto</th><th>Estado</th><th>Acción</th></tr>
+      <tr><th>Fecha</th><th>Ent.</th><th>Monto</th><th>Estado</th><th>Acción</th></tr>
     </table>
   </div>
 </div>
@@ -63,11 +80,24 @@
 <script>
 function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
 function hoy(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function ahoraStr(){ const d = new Date(); return `${hoy()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
 let registros = [];
-try { registros = JSON.parse(localStorage.getItem("mkp_repartidor_hist") || "[]"); } catch(e) {}
+let filtroActual = 'todos';
 
-function persist(){ localStorage.setItem("mkp_repartidor_hist", JSON.stringify(registros)); }
+function loadLocal(){
+  try { registros = JSON.parse(localStorage.getItem("mkp_repartidor_hist") || "[]"); } catch(e) { registros = []; }
+}
+function persist(){
+  localStorage.setItem("mkp_repartidor_hist", JSON.stringify(registros));
+}
+
+function setFiltro(f){
+  filtroActual = f;
+  document.querySelectorAll(".filtros button").forEach(b => b.classList.remove("active"));
+  document.getElementById("f-"+f).classList.add("active");
+  render();
+}
 
 function calcTotalRep(){
   const c = parseInt(document.getElementById("rCant").value) || 0;
@@ -81,41 +111,96 @@ function guardarReparto(){
   const t = parseInt(document.getElementById("rTotal").value) || 0;
   if(c <= 0 || t <= 0){ alert("Ingresa una cantidad válida."); return; }
 
-  registros.unshift({ id: Date.now(), fecha: f, entregas: c, monto: t, pagado: false });
+  registros.unshift({ id: Date.now(), fecha: f, entregas: c, monto: t, pagado: false, anulado: false, detalleAnulacion: "" });
   persist();
   render();
-  alert("Jornada registrada.");
+  alert("Jornada registrada en el historial.");
 }
 
 function marcarPagado(id){
   const item = registros.find(r => r.id === id);
-  if(item && confirm(`¿Marcar el reparto del ${item.fecha} (${money(item.monto)}) como PAGADO?`)){
+  if(item && !item.anulado && confirm(`¿Marcar el reparto del ${item.fecha} (${money(item.monto)}) como PAGADO?`)){
     item.pagado = true;
+    item.fechaPago = hoy();
     persist();
     render();
   }
 }
 
+function anularRegistro(id){
+  const item = registros.find(r => r.id === id);
+  if(!item || item.anulado) return;
+  const motivo = prompt(`¿Motivo para anular el registro del ${item.fecha} (${money(item.monto)})?\n(El registro quedará visible como ANULADO en el historial)`, "Error de ingreso");
+  if(motivo !== null){
+    item.anulado = true;
+    item.pagado = false;
+    item.detalleAnulacion = `Anulado el ${ahoraStr()} (${motivo.trim() || "Sin motivo"})`;
+    persist();
+    render();
+    alert("Registro marcado como ANULADO.");
+  }
+}
+
 function render(){
-  let pendMonto = 0, pendEntregas = 0;
-  let html = "<tr><th>Fecha</th><th>Entregas</th><th>Monto</th><th>Estado</th><th>Acción</th></tr>";
+  let pendMonto = 0, pendEntregas = 0, histPagado = 0;
 
   registros.forEach(r => {
-    if(!r.pagado){
-      pendMonto += r.monto;
-      pendEntregas += r.entregas;
+    if(!r.anulado){
+      if(r.pagado){
+        histPagado += r.monto;
+      } else {
+        pendMonto += r.monto;
+        pendEntregas += r.entregas;
+      }
     }
-    const btn = r.pagado ? "✓" : `<button style="background:#2e7d32;color:#fff;border:none;padding:4px 8px;border-radius:4px;" onclick="marcarPagado(${r.id})">Cobrar</button>`;
-    html += `<tr><td>${r.fecha}</td><td>${r.entregas}</td><td>${money(r.monto)}</td><td>${r.pagado ? "Pagado" : "Pendiente"}</td><td>${btn}</td></tr>`;
   });
 
   document.getElementById("lblRepPendiente").textContent = money(pendMonto);
   document.getElementById("lblRepEntregas").textContent = `${pendEntregas} entrega(s) pendiente(s) de pago`;
-  document.getElementById("tblRepartos").innerHTML = registros.length ? html : "<tr><td colspan=5>Sin registros aún.</td></tr>";
+  document.getElementById("lblRepHistoricoPagado").textContent = `Total histórico ya pagado: ${money(histPagado)}`;
+
+  const filtrados = registros.filter(r => {
+    if(filtroActual === 'pend') return !r.pagado && !r.anulado;
+    if(filtroActual === 'pag') return r.pagado && !r.anulado;
+    if(filtroActual === 'anu') return r.anulado;
+    return true;
+  });
+
+  let html = "<tr><th>Fecha</th><th>Ent.</th><th>Monto</th><th>Estado</th><th>Acción</th></tr>";
+  filtrados.forEach(r => {
+    let estadoHtml = "";
+    let accionHtml = "";
+    let rowClass = "";
+
+    if(r.anulado){
+      rowClass = "anulado";
+      estadoHtml = `<span class="tag-anu">ANULADO</span><br><span style="font-size:10px;color:#b71c1c;">${r.detalleAnulacion || "Registro anulado"}</span>`;
+      accionHtml = "—";
+    } else if(r.pagado){
+      estadoHtml = `<span class="tag-ok">✓ Pagado</span>${r.fechaPago ? `<br><span style="font-size:10px;color:#666;">${r.fechaPago}</span>` : ""}`;
+      accionHtml = "—";
+    } else {
+      estadoHtml = `<span class="tag-pend">Pendiente</span>`;
+      accionHtml = `
+        <button style="background:#2e7d32;color:#fff;border:none;padding:4px 7px;border-radius:4px;font-size:11px;margin-bottom:3px;width:100%;" onclick="marcarPagado(${r.id})">Cobrar</button>
+        <button style="background:#c62828;color:#fff;border:none;padding:4px 7px;border-radius:4px;font-size:11px;width:100%;" onclick="anularRegistro(${r.id})">Anular</button>
+      `;
+    }
+
+    html += `<tr class="${rowClass}">
+      <td>${r.fecha}</td>
+      <td>${r.entregas}</td>
+      <td class="monto"><b>${money(r.monto)}</b></td>
+      <td>${estadoHtml}</td>
+      <td>${accionHtml}</td>
+    </tr>`;
+  });
+
+  document.getElementById("tblRepartos").innerHTML = filtrados.length ? html : "<tr><td colspan=5>Sin registros en esta vista.</td></tr>";
 }
 
 function enviarResumenWsp(){
-  const pend = registros.filter(r => !r.pagado);
+  const pend = registros.filter(r => !r.pagado && !r.anulado);
   const tot = pend.reduce((s, r) => s + r.monto, 0);
   const ent = pend.reduce((s, r) => s + r.entregas, 0);
   const msg = `🛵 *MAKIPAP - Resumen de Repartos*\n\nEntregas pendientes: ${ent}\n💰 *Total a pagar:* ${money(tot)}\n\nEnviado desde app de reparto.`;
@@ -124,6 +209,28 @@ function enviarResumenWsp(){
 
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById("rFecha").value = hoy();
+  loadLocal();
+
+  // Revisa si vienen datos cargados desde la app principal por enlace de WhatsApp
+  const params = new URLSearchParams(window.location.search);
+  const dataParam = params.get('data');
+  if(dataParam){
+    try {
+      const importados = JSON.parse(decodeURIComponent(atob(dataParam)));
+      if(Array.isArray(importados)){
+        // Fusiona sin duplicar por fecha si ya existen
+        importados.forEach(imp => {
+          const existe = registros.some(r => r.fecha === imp.fecha && !r.anulado);
+          if(!existe) registros.push(imp);
+        });
+        registros.sort((a,b) => b.fecha.localeCompare(a.fecha));
+        persist();
+        document.getElementById("syncBadge").style.display = "inline-block";
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch(e) { console.error("Error importando repartos:", e); }
+  }
+
   render();
 });
 </script>
