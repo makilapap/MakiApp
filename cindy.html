@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>MAKIPAP - Panel de Cindy</title>
+<style>
+  :root { font-family: system-ui, -apple-system, sans-serif; color:#111827; background:#f4f6f8; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin:0; padding:20px; max-width:480px; margin:0 auto; }
+  header { background:#1a1a2e; color:#fff; padding:16px; border-radius:12px; text-align:center; margin-bottom:16px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+  header h1 { margin:0; font-size:18px; }
+  header small { color:#aaa; font-size:12px; }
+  .card { background:#fff; border-radius:12px; padding:16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.1); text-align:center; }
+  .big-number { font-size:36px; font-weight:bold; color:#2e7d32; margin:10px 0; }
+  .info-box { font-size:14px; color:#555; margin-bottom:8px; }
+  button.btn { border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:bold; color:#fff; width:100%; margin-top:10px; cursor:pointer; background:#1565c0; }
+  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; text-align:left; }
+  th, td { border:1px solid #ddd; padding:8px; }
+  th { background:#333; color:#fff; }
+  .muted { color:#666; font-size:12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍣 MAKIPAP EIRL</h1>
+  <small>Panel de Control y Sueldos — Cindy</small>
+</header>
+
+<div class="card">
+  <div class="info-box">Total Acumulado Pendiente de Retiro</div>
+  <div class="big-number" id="lblTotalPendiente">$0</div>
+  <div class="muted" id="lblDetalleDias">0 días hábiles pendientes</div>
+</div>
+
+<div class="card" style="text-align: left;">
+  <h3>📅 Próximo periodo de retiro</h3>
+  <p class="muted" id="lblProximoPago">Calculando fechas de cobro (máx. 10 días hábiles)...</p>
+  <button class="btn" onclick="actualizarPanelCindy()">🔄 Actualizar Datos</button>
+</div>
+
+<div class="card" style="text-align: left;">
+  <h3>📋 Historial de Días y Sueldos</h3>
+  <div style="overflow-x:auto;">
+    <table id="tblSueldosCindy">
+      <tr><th>Fecha</th><th>Total Día</th><th>Sueldo Cindy</th><th>Estado</th></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+function load(k,d){ 
+  try{ const val = localStorage.getItem("mkp_"+k); return val !== null ? JSON.parse(val) : d; }catch(e){ return d; } 
+}
+function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
+function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
+
+function actualizarPanelCindy(){
+  const sueldos = load("sueldos", {});
+  const fechas = Object.keys(sueldos).sort();
+  
+  let pendientes = [];
+  let historialHtml = "";
+  
+  fechas.reverse().forEach(f => {
+    const item = sueldos[f];
+    const pagado = item.pagC ? "✓ Pagado" : "Pendiente";
+    if(!item.pagC && item.cindy > 0) {
+      pendientes.push({fecha: f, sueldo: item.cindy});
+    }
+    historialHtml += `<tr><td>${f}</td><td>${money(item.totalDia)}</td><td>${money(item.cindy)}</td><td>${pagado}</td></tr>`;
+  });
+
+  const totalAcumulado = pendientes.reduce((sum, p) => sum + p.sueldo, 0);
+  
+  document.getElementById("lblTotalPendiente").textContent = money(totalAcumulado);
+  document.getElementById("lblDetalleDias").textContent = `${pendientes.length} día(s) hábil(es) acumulado(s)`;
+  
+  if(pendientes.length > 0) {
+    const primerDia = pendientes[pendientes.length - 1].fecha;
+    const ultimoDia = pendientes[0].fecha;
+    document.getElementById("lblProximoPago").innerHTML = `Periodo acumulado actual:<br><b>Desde:</b> ${primerDia} <br><b>Hasta:</b> ${ultimoDia} <br><br><i>Recuerda retirar cada 10 días hábiles.</i>`;
+  } else {
+    document.getElementById("lblProximoPago").textContent = "No hay sueldos pendientes de cobro en este momento.";
+  }
+
+  document.getElementById("tblSueldosCindy").innerHTML = 
+    "<tr><th>Fecha</th><th>Total Día</th><th>Sueldo Cindy</th><th>Estado</th></tr>" + (historialHtml || "<tr><td colspan=4>Sin registros de sueldo</td></tr>");
+}
+
+window.addEventListener('DOMContentLoaded', actualizarPanelCindy);
+</script>
+
+</body>
+</html>
