@@ -18,6 +18,7 @@
   .info-box { font-size:14px; color:#555; margin-bottom:8px; }
   button.btn { border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:bold; color:#fff; width:100%; margin-top:10px; cursor:pointer; background:#1565c0; }
   .btn-green { background:#2e7d32; }
+  textarea { width:100%; font-family:monospace; font-size:11px; height:70px; margin-top:8px; padding:6px; }
   table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; text-align:left; }
   th, td { border:1px solid #ddd; padding:8px; }
   th { background:#333; color:#fff; }
@@ -38,9 +39,13 @@
 </div>
 
 <div class="card" style="text-align: left;">
-  <h3>📅 Estado del Periodo</h3>
-  <p class="muted" id="lblProximoPago">Sincronizando datos de la aplicación...</p>
-  <button class="btn btn-green" onclick="actualizarPanelCindy()">🔄 Sincronizar y Actualizar</button>
+  <h3>📅 Sincronización de Datos</h3>
+  <p class="muted">Para ver los datos actualizados en este teléfono, pega aquí abajo los datos de sueldos o usa el botón:</p>
+  <button class="btn btn-green" onclick="cargarDatosLocal()">🔄 Leer Memoria del Teléfono</button>
+  
+  <label class="muted" style="display:block; margin-top:10px;">O pega el texto de respaldo de sueldos:</label>
+  <textarea id="txtImportar" placeholder='Pega aquí el JSON de sueldos si usas otro dispositivo...'></textarea>
+  <button class="btn" onclick="importarTexto()">📥 Cargar Datos Pegados</button>
 </div>
 
 <div class="card" style="text-align: left;">
@@ -53,27 +58,15 @@
 </div>
 
 <script>
-function load(k,d){ 
-  try{ 
-    const val = localStorage.getItem("mkp_"+k); 
-    return val !== null ? JSON.parse(val) : d; 
-  }catch(e){ 
-    return d; 
-  } 
-}
 function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
 
-function actualizarPanelCindy(){
-  // Lee exactamente la misma base de datos de sueldos generada por la app principal
-  const sueldos = load("sueldos", {});
+function procesarSueldos(sueldos){
   const fechas = Object.keys(sueldos).sort();
-  
   let pendientes = [];
   let historialHtml = "";
   
   fechas.reverse().forEach(f => {
     const item = sueldos[f];
-    // Verifica si fue pagado en la app principal
     const pagado = item.pagC ? "✓ Pagado" : "Pendiente";
     
     if(!item.pagC && item.cindy > 0) {
@@ -87,21 +80,40 @@ function actualizarPanelCindy(){
   
   document.getElementById("lblTotalPendiente").textContent = money(totalAcumulado);
   document.getElementById("lblDetalleDias").textContent = `${pendientes.length} día(s) hábil(es) pendientes de cobro`;
-  
-  if(pendientes.length > 0) {
-    const primerDia = pendientes[pendientes.length - 1].fecha;
-    const ultimoDia = pendientes[0].fecha;
-    document.getElementById("lblProximoPago").innerHTML = `<b>Periodo pendiente actual:</b><br>Desde: ${primerDia} hasta ${ultimoDia}`;
-  } else {
-    document.getElementById("lblProximoPago").textContent = "¡Todo al día! No hay sueldos pendientes de cobro actualmente.";
-  }
 
   document.getElementById("tblSueldosCindy").innerHTML = 
-    "<tr><th>Fecha</th><th>Total Día</th><th>Sueldo Cindy</th><th>Estado</th></tr>" + (historialHtml || "<tr><td colspan=4>Sin registros en el sistema todavía. Calcula los balances en la app principal.</td></tr>");
+    "<tr><th>Fecha</th><th>Total Día</th><th>Sueldo Cindy</th><th>Estado</th></tr>" + (historialHtml || "<tr><td colspan=4>Sin registros encontrados.</td></tr>");
 }
 
-// Carga automática al abrir la página
-window.addEventListener('DOMContentLoaded', actualizarPanelCindy);
+function cargarDatosLocal(){
+  try {
+    const val = localStorage.getItem("mkp_sueldos");
+    if(val) {
+      const sueldos = JSON.parse(val);
+      procesarSueldos(sueldos);
+      alert("¡Datos sincronizados correctamente desde la memoria del teléfono!");
+    } else {
+      alert("No se encontraron registros previos en este navegador. Calcula un balance en la app principal primero.");
+    }
+  } catch(e) {
+    alert("Error al leer los datos.");
+  }
+}
+
+function importarTexto(){
+  try {
+    const txt = document.getElementById("txtImportar").value.trim();
+    if(!txt) { alert("El campo está vacío."); return; }
+    const sueldos = JSON.parse(txt);
+    localStorage.setItem("mkp_sueldos", JSON.stringify(sueldos));
+    procesarSueldos(sueldos);
+    alert("¡Datos cargados con éxito!");
+  } catch(e) {
+    alert("El formato de los datos no es válido.");
+  }
+}
+
+window.addEventListener('DOMContentLoaded', cargarDatosLocal);
 </script>
 
 </body>
