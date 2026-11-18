@@ -237,15 +237,28 @@ function persist(){
 }
 function setCfg(k,v){ config[k]=v; persist(); }
 
-// ================= UTILIDADES =================
-function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
-function hoy(){ 
+// ================= HORA DE CHILE =================
+function hoy(){
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
 }
+function ahoraChile(){
+  const d = new Date();
+  const fecha = d.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+  const hora = d.toLocaleTimeString('en-GB', { timeZone: 'America/Santiago', hour12: false });
+  return `${fecha} ${hora}`;
+}
+
+// ================= UTILIDADES Y REGLA DE SUELDO =================
+function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
 function calcNetoIva(t){ const n=Math.round(t/1.19); return [n, t-n]; }
 function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
-function calcSueldo(totalDia){ return totalDia<=UMBRAL_VENTAS ? SUELDO_MIN : Math.round(totalDia*SUELDO_PCT); }
+
+// Regla: 27% del día, con un mínimo garantizado de $20.000
+function calcSueldo(totalDia){ 
+  const calculado = Math.round(totalDia * SUELDO_PCT);
+  return calculado < SUELDO_MIN ? SUELDO_MIN : calculado; 
+}
 function claudioDesde(f){ return f>=INICIO_CLAUDIO; }
 
 function nivelStock(tipo,valor,umbral){
@@ -352,8 +365,7 @@ function generarPedido(){
   const fono=document.getElementById("cliFono").value.trim();
   const dir=document.getElementById("cliDir").value.trim();
   let fecha=document.getElementById("fechaPed").value||hoy();
-  const ahora=new Date();
-  const fh = fecha===hoy() ? ahora.toISOString().slice(0,19).replace("T"," ") : fecha+" 12:00:00";
+  const fh = fecha===hoy() ? ahoraChile() : fecha+" 12:00:00";
   const num=(config.ultimo_numero||0)+1; config.ultimo_numero=num;
   
   pedidos.unshift({numero:num, fecha:fh, items, total:t.total, neto:t.neto, iva:t.iva, descuento:t.desc, forma:f, cliente, fono, dir, anulado:0});
@@ -445,7 +457,7 @@ function balanceDia(){
   const f=document.getElementById("fechaBal").value||hoy();
   const ps=pedidosDelDia(f);
   const out=document.getElementById("outBal");
-  if(!ps.length){ out.innerHTML="<p class='muted'>No hay pedidos activos para "+f+".</p>"; return; }
+  
   let sumN=0,sumI=0,sumT=0,ventasProd=0,repCli=0,cantRep=0,totEf=0,totTr=0,cEf=0,cTr=0;
   ps.forEach(p=>{
     const rep=p.items.filter(i=>i.nombre.trim().toLowerCase()==="reparto").reduce((s,i)=>s+i.precio*(i.cantidad||1),0);
@@ -530,9 +542,7 @@ function renderSueldos(){
 function enviarSueldosCindyWsp(){
   const c = pendientes("Cindy");
   const totalAcum = c.reduce((s,r)=>s+r.sueldo,0);
-  // Codifica el objeto sueldos en Base64 para enviarlo directo en el enlace de Cindy
   const encodedData = btoa(encodeURIComponent(JSON.stringify(sueldos)));
-  // Detecta la ruta base de tu GitHub Pages automáticamente
   const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
   const magicLink = `${baseUrl}cindy.html?data=${encodedData}`;
   
@@ -575,9 +585,16 @@ function generarComprobanteRepartidor(){
 }
 
 function enviarRepartidorWsp(){
-  function sincronizarRepartidorWsp(){
   const fono = document.getElementById("repFono").value.trim().replace(/[^0-9+]/g, '');
-  // Agrupa todos los pedidos activos que tuvieron ítem "Reparto" por fecha
+  if(!fono){ alert("Ingrese el teléfono del repartidor."); return; }
+  const txt = document.getElementById("previewRep").value;
+  if(!txt){ alert("Primero genere el comprobante."); return; }
+  const url = `https://wa.me/${fono}?text=${encodeURIComponent(txt)}`;
+  window.open(url, '_blank');
+}
+
+function sincronizarRepartidorWsp(){
+  const fono = document.getElementById("repFono").value.trim().replace(/[^0-9+]/g, '');
   const porFecha = {};
   pedidos.forEach(p => {
     if(p.anulado) return;
@@ -587,7 +604,6 @@ function enviarRepartidorWsp(){
       const cantEnt = Math.max(1, Math.round(rep / 1000));
       if(!porFecha[f]) porFecha[f] = { id: Date.parse(f+"T12:00:00") || Date.now(), fecha: f, entregas: 0, monto: 0, pagado: false, anulado: false, detalleAnulacion: "" };
       porFecha[f].entregas += cantEnt;
-      // Suma los $1.000 cobrados al cliente + los $1.000 de aporte del local ($2.000 por entrega)
       porFecha[f].monto += (cantEnt * 2000);
     }
   });
@@ -739,6 +755,23 @@ function fmt(d){ return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMont
 // ================= INICIO =================
 window.addEventListener('DOMContentLoaded', () => {
   buildMenu();
+  
+  // Asigna la fecha correcta de Chile al iniciar
+  const fechaHoy = hoy();
+  const elPed = document.getElementById("fechaPed");
+  const elBal = document.getElementById("fechaBal");
+  const elSemIni = document.getElementById("semInicio");
+  const elSemFin = document.getElementById("semFin");
+  const elGFecha = document.getElementById("gFecha");
+  const elRepFecha = document.getElementById("repFecha");
+
+  if(elPed) elPed.value = fechaHoy;
+  if(elBal) elBal.value = fechaHoy;
+  if(elSemIni) elSemIni.value = fechaHoy;
+  if(elSemFin) elSemFin.value = fechaHoy;
+  if(elGFecha) elGFecha.value = fechaHoy;
+  if(elRepFecha) elRepFecha.value = fechaHoy;
+
   updPreview();
   updStockBanner();
   renderImp();
