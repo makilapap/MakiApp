@@ -254,8 +254,10 @@ function ahoraChile(){
 }
 function calcNetoIva(t){ const n=Math.round(t/1.19); return [n, t-n]; }
 function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
-function calcSueldo(totalDia){ return totalDia<=UMBRAL_VENTAS ? SUELDO_MIN : Math.round(totalDia*SUELDO_PCT); }
-function claudioDesde(f){ return f>=INICIO_CLAUDIO; }
+function calcSueldo(totalDia){ 
+  const calculado = Math.round(totalDia * SUELDO_PCT);
+  return calculado < SUELDO_MIN ? SUELDO_MIN : calculado; 
+}
 
 function nivelStock(tipo,valor,umbral){
   const v=(valor||"").toLowerCase();
