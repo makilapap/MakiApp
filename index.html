@@ -239,18 +239,9 @@ function setCfg(k,v){ config[k]=v; persist(); }
 
 // ================= UTILIDADES =================
 function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
-// Obtiene siempre la fecha actual correcta en Chile (AAAA-MM-DD) sin errores de zona horaria
-function hoy() {
+function hoy(){ 
   const d = new Date();
-  return d.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
-}
-
-// Obtiene la fecha y hora exacta de Chile para los registros
-function ahoraChile() {
-  const d = new Date();
-  const fecha = d.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
-  const hora = d.toLocaleTimeString('en-GB', { timeZone: 'America/Santiago', hour12: false });
-  return `${fecha} ${hora}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
 }
 function calcNetoIva(t){ const n=Math.round(t/1.19); return [n, t-n]; }
 function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
@@ -755,23 +746,6 @@ function fmt(d){ return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMont
 // ================= INICIO =================
 window.addEventListener('DOMContentLoaded', () => {
   buildMenu();
-  
-  // Asigna la fecha correcta de Chile al iniciar la página
-  const fechaHoy = hoy();
-  const elPed = document.getElementById("fechaPed");
-  const elBal = document.getElementById("fechaBal");
-  const elSemIni = document.getElementById("semInicio");
-  const elSemFin = document.getElementById("semFin");
-  const elGFecha = document.getElementById("gFecha");
-  const elRepFecha = document.getElementById("repFecha");
-
-  if(elPed) elPed.value = fechaHoy;
-  if(elBal) elBal.value = fechaHoy;
-  if(elSemIni) elSemIni.value = fechaHoy;
-  if(elSemFin) elSemFin.value = fechaHoy;
-  if(elGFecha) elGFecha.value = fechaHoy;
-  if(elRepFecha) elRepFecha.value = fechaHoy;
-
   updPreview();
   updStockBanner();
   renderImp();
