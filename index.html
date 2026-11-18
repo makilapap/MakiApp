@@ -127,14 +127,14 @@
     <button class="btn g" onclick="retirarSueldo()">💰 Generar retiro de sueldo</button>
     <div id="outRetiro"></div>
   </div>
-</section>
-<div class="card">
+  <div class="card">
     <h2>💾 Respaldo y Restauración de Datos</h2>
     <p class="muted">Guarda una copia de seguridad de todos tus datos o restáurala si cambias de teléfono.</p>
     <button class="btn b" onclick="exportarRespaldo()">📥 Descargar Respaldo (Archivo)</button>
     <label class="fld" style="margin-top:10px;">Restaurar desde archivo de respaldo:</label>
     <input class="sel" type="file" id="archivoRespaldo" accept=".json" onchange="importarRespaldo(event)">
   </div>
+</section>
 <!-- ================= REPARTOS ================= -->
 <section class="tab" id="tab-rep">
   <div class="card">
@@ -472,6 +472,7 @@ function balanceDia(){
     if(rep>0) cantRep+=Math.max(1,Math.round(rep/1000));
     if((p.forma||"Efectivo").toLowerCase().startsWith("efect")){ totEf+=p.total; cEf++; } else { totTr+=p.total; cTr++; }
   });
+  const totalBruto = totEf + totTr;
   const aporte=cantRep*1000;
   const totalDia=ventasProd-aporte;
   const base=calcSueldo(totalDia);
@@ -490,6 +491,7 @@ function balanceDia(){
       <tr><td>Entregas (Repartos)</td><td>${cantRep} ($${repCli})</td></tr>
       <tr><td>Efectivo</td><td>${money(totEf)} (${cEf})</td></tr>
       <tr><td>Transferencia</td><td>${money(totTr)} (${cTr})</td></tr>
+      <tr><td><b>TOTAL BRUTO</b></td><td><b>${money(totalBruto)}</b></td></tr>
       <tr><td><b>TOTAL DEL DÍA</b></td><td><b>${money(totalDia)}</b></td></tr>
       <tr><td>IVA 19%</td><td>${money(sumI)}</td></tr>
       <tr><td>PPM 0,25%</td><td>${money(sumN*PPM)}</td></tr>
