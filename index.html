@@ -239,25 +239,14 @@ function setCfg(k,v){ config[k]=v; persist(); }
 
 // ================= UTILIDADES =================
 function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
-// Función para obtener la fecha exacta en Chile (AAAA-MM-DD)
-function hoy(){
+function hoy(){ 
   const d = new Date();
-  return d.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
-}
-
-// Función para obtener fecha y hora exacta en Chile (AAAA-MM-DD HH:MM:SS)
-function ahoraChile(){
-  const d = new Date();
-  const fecha = d.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
-  const hora = d.toLocaleTimeString('en-GB', { timeZone: 'America/Santiago', hour12: false });
-  return `${fecha} ${hora}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
 }
 function calcNetoIva(t){ const n=Math.round(t/1.19); return [n, t-n]; }
 function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
-function calcSueldo(totalDia){ 
-  const calculado = Math.round(totalDia * SUELDO_PCT);
-  return calculado < SUELDO_MIN ? SUELDO_MIN : calculado; 
-}
+function calcSueldo(totalDia){ return totalDia<=UMBRAL_VENTAS ? SUELDO_MIN : Math.round(totalDia*SUELDO_PCT); }
+function claudioDesde(f){ return f>=INICIO_CLAUDIO; }
 
 function nivelStock(tipo,valor,umbral){
   const v=(valor||"").toLowerCase();
@@ -362,10 +351,9 @@ function generarPedido(){
   const cliente=document.getElementById("cliNombre").value.trim();
   const fono=document.getElementById("cliFono").value.trim();
   const dir=document.getElementById("cliDir").value.trim();
-  let fechaInput=document.getElementById("fechaPed").value||hoy();
-  
-  // Usa la hora actual de Chile si la fecha es la de hoy, de lo contrario fija las 12:00
-  const fh = fechaInput === hoy() ? ahoraChile() : fechaInput + " 12:00:00";
+  let fecha=document.getElementById("fechaPed").value||hoy();
+  const ahora=new Date();
+  const fh = fecha===hoy() ? ahora.toISOString().slice(0,19).replace("T"," ") : fecha+" 12:00:00";
   const num=(config.ultimo_numero||0)+1; config.ultimo_numero=num;
   
   pedidos.unshift({numero:num, fecha:fh, items, total:t.total, neto:t.neto, iva:t.iva, descuento:t.desc, forma:f, cliente, fono, dir, anulado:0});
