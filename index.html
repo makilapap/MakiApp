@@ -360,9 +360,10 @@ function generarPedido(){
   const cliente=document.getElementById("cliNombre").value.trim();
   const fono=document.getElementById("cliFono").value.trim();
   const dir=document.getElementById("cliDir").value.trim();
-  let fecha=document.getElementById("fechaPed").value||hoy();
-  const ahora=new Date();
-  const fh = fecha===hoy() ? ahora.toISOString().slice(0,19).replace("T"," ") : fecha+" 12:00:00";
+  let fechaInput=document.getElementById("fechaPed").value||hoy();
+  
+  // Usa la hora actual de Chile si la fecha es la de hoy, de lo contrario fija las 12:00
+  const fh = fechaInput === hoy() ? ahoraChile() : fechaInput + " 12:00:00";
   const num=(config.ultimo_numero||0)+1; config.ultimo_numero=num;
   
   pedidos.unshift({numero:num, fecha:fh, items, total:t.total, neto:t.neto, iva:t.iva, descuento:t.desc, forma:f, cliente, fono, dir, anulado:0});
