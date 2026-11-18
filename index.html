@@ -140,6 +140,7 @@
     <label class="fld">Total a pagar asignado ($)</label><input class="sel" id="repMonto" type="number" min="0" placeholder="Ej: 5000">
     <button class="btn tl" onclick="generarComprobanteRepartidor()">🧾 Generar Comprobante Repartidor</button>
     <button class="btn w" onclick="enviarRepartidorWsp()">💬 Enviar Comprobante por WhatsApp</button>
+    <button class="btn b" onclick="sincronizarRepartidorWsp()">📤 Cargar Historial al Teléfono del Repartidor (WhatsApp)</button>
     <textarea id="previewRep" readonly placeholder="El comprobante aparecerá aquí..."></textarea>
   </div>
 </section>
@@ -574,12 +575,32 @@ function generarComprobanteRepartidor(){
 }
 
 function enviarRepartidorWsp(){
+  function sincronizarRepartidorWsp(){
   const fono = document.getElementById("repFono").value.trim().replace(/[^0-9+]/g, '');
-  if(!fono){ alert("Ingrese el teléfono del repartidor (ej: +56933333333)."); return; }
-  const txt = document.getElementById("previewRep").value;
-  if(!txt){ alert("Primero genere el comprobante."); return; }
-  const url = `https://wa.me/${fono}?text=${encodeURIComponent(txt)}`;
-  window.open(url, '_blank');
+  // Agrupa todos los pedidos activos que tuvieron ítem "Reparto" por fecha
+  const porFecha = {};
+  pedidos.forEach(p => {
+    if(p.anulado) return;
+    const rep = p.items.filter(i => i.nombre.trim().toLowerCase() === "reparto").reduce((s,i)=>s+i.precio*(i.cantidad||1),0);
+    if(rep > 0){
+      const f = (p.fecha || "").slice(0,10);
+      const cantEnt = Math.max(1, Math.round(rep / 1000));
+      if(!porFecha[f]) porFecha[f] = { id: Date.parse(f+"T12:00:00") || Date.now(), fecha: f, entregas: 0, monto: 0, pagado: false, anulado: false, detalleAnulacion: "" };
+      porFecha[f].entregas += cantEnt;
+      // Suma los $1.000 cobrados al cliente + los $1.000 de aporte del local ($2.000 por entrega)
+      porFecha[f].monto += (cantEnt * 2000);
+    }
+  });
+
+  const lista = Object.values(porFecha);
+  if(!lista.length){ alert("No hay repartos registrados en los pedidos."); return; }
+
+  const encoded = btoa(encodeURIComponent(JSON.stringify(lista)));
+  const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  const link = `${baseUrl}repartidor.html?data=${encoded}`;
+  const msg = `🛵 *MAKIPAP - Carga de Historial de Repartos*\n\nToca este enlace para cargar tus repartos históricos en tu teléfono:\n${link}`;
+  
+  window.open(`https://wa.me/${fono}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 // ================= GASTOS =================
