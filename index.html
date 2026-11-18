@@ -128,7 +128,13 @@
     <div id="outRetiro"></div>
   </div>
 </section>
-
+<div class="card">
+    <h2>💾 Respaldo y Restauración de Datos</h2>
+    <p class="muted">Guarda una copia de seguridad de todos tus datos o restáurala si cambias de teléfono.</p>
+    <button class="btn b" onclick="exportarRespaldo()">📥 Descargar Respaldo (Archivo)</button>
+    <label class="fld" style="margin-top:10px;">Restaurar desde archivo de respaldo:</label>
+    <input class="sel" type="file" id="archivoRespaldo" accept=".json" onchange="importarRespaldo(event)">
+  </div>
 <!-- ================= REPARTOS ================= -->
 <section class="tab" id="tab-rep">
   <div class="card">
@@ -776,6 +782,51 @@ window.addEventListener('DOMContentLoaded', () => {
   updStockBanner();
   renderImp();
 });
+  // ================= RESPALDO Y RESTAURACIÓN =================
+function exportarRespaldo() {
+  const datos = {
+    pedidos: pedidos,
+    gastos: gastos,
+    stock: stock,
+    sueldos: sueldos,
+    config: config,
+    repartidor_hist: localStorage.getItem("mkp_repartidor_hist") ? JSON.parse(localStorage.getItem("mkp_repartidor_hist")) : []
+  };
+  
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datos, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `respaldo_makipap_${hoy()}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+function importarRespaldo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const contenido = JSON.parse(e.target.result);
+      if(confirm("¿Estás seguro de restaurar este respaldo? Se sobrescribirán los datos actuales en este teléfono.")) {
+        if(contenido.pedidos) { pedidos = contenido.pedidos; save("pedidos", pedidos); }
+        if(contenido.gastos) { gastos = contenido.gastos; save("gastos", gastos); }
+        if(contenido.stock) { stock = contenido.stock; save("stock", stock); }
+        if(contenido.sueldos) { sueldos = contenido.sueldos; save("sueldos", sueldos); }
+        if(contenido.config) { config = contenido.config; save("config", config); }
+        if(contenido.repartidor_hist) { localStorage.setItem("mkp_repartidor_hist", JSON.stringify(contenido.repartidor_hist)); }
+        
+        alert("¡Datos restaurados con éxito!");
+        location.reload();
+      }
+    } catch (err) {
+      alert("El archivo no es válido o está dañado.");
+    }
+  };
+  reader.readAsText(file);
+}
 </script>
 </body>
 </html>
