@@ -16,7 +16,7 @@
   header small { color:#aaa; font-size:11px; }
   #bannerTri, #bannerStock { font-size:12px; font-weight:bold; color:#fff; padding:8px 12px; cursor:pointer; }
   nav { position:fixed; bottom:0; left:0; right:0; display:flex; background:#263238; z-index:10; padding-bottom:env(safe-area-inset-bottom); box-shadow: 0 -2px 5px rgba(0,0,0,0.2); overflow-x: auto; }
-  nav button { flex:1; min-width: 62px; background:none; border:none; color:#cfd8dc; font-size:10px; padding:8px 2px; cursor:pointer; white-space: nowrap; }
+  nav button { flex:1; min-width: 65px; background:none; border:none; color:#cfd8dc; font-size:10px; padding:8px 2px; cursor:pointer; white-space: nowrap; }
   nav button.active { color:#ffb300; font-weight:bold; }
   nav span { display:block; font-size:18px; }
   section.tab { display:none; padding:10px; max-width:640px; margin:0 auto; }
@@ -43,12 +43,9 @@
   .stockrow .ind { width:16px; height:16px; border-radius:4px; flex:none; }
   .stockrow input, .stockrow select { font-size:13px; padding:4px; border:1px solid #ccc; border-radius:6px; }
   h2 { font-size:16px; margin:6px 0; }
-  h3 { font-size:14px; margin:8px 0 4px; color:#333; }
   .muted { color:#666; font-size:12px; }
   .sechdr { background:#e8e8e8; font-weight:bold; padding:6px 8px; border-radius:6px; margin-top:10px; }
   .alerta { padding:8px 10px; border-radius:8px; color:#fff; font-size:13px; font-weight:bold; margin-bottom:8px; }
-  .gasto-neg { color:#c62828; }
-  .util-pos { color:#2e7d32; font-size:14px; }
 </style>
 </head>
 <body>
@@ -66,7 +63,6 @@
   <button data-t="gas" onclick="showTab('gas')"><span>🧾</span>Gastos</button>
   <button data-t="stock" onclick="showTab('stock')"><span>📦</span>Stock</button>
   <button data-t="imp" onclick="showTab('imp')"><span>⚠</span>Impuestos</button>
-  <button data-t="db" onclick="showTab('db')"><span>💾</span>Datos</button>
 </nav>
 
 <!-- ================= POS ================= -->
@@ -125,6 +121,7 @@
   <div class="card">
     <h2>Sueldos pendientes</h2>
     <div id="outSueldos"></div>
+    <button class="btn w" onclick="enviarSueldosCindyWsp()">📤 Enviar estado de sueldos a Cindy (WhatsApp)</button>
     <label class="fld">Retirar sueldo de (máx 10 días hábiles)</label>
     <select class="sel" id="personaSel"><option>Cindy</option><option>Claudio</option></select>
     <button class="btn g" onclick="retirarSueldo()">💰 Generar retiro de sueldo</button>
@@ -187,30 +184,10 @@
   <div class="card" id="impCard"></div>
 </section>
 
-<!-- ================= BASE DE DATOS / RESPALDO ================= -->
-<section class="tab" id="tab-db">
-  <div class="card">
-    <h2>💾 Respaldo y Sincronización</h2>
-    <p class="muted">Como la app funciona sin internet en cada teléfono, usa estas opciones para guardar copias de seguridad o pasar los registros de un teléfono a otro.</p>
-    <div id="dbStats" style="background:#eef2ff; padding:10px; border-radius:8px; font-size:13px; margin-bottom:10px;"></div>
-    
-    <button class="btn b" onclick="exportarDB()">⬇ Descargar Copia de Seguridad (.json)</button>
-    <button class="btn w" onclick="enviarDBWhatsapp()">💬 Enviar Resumen / Respaldo por WhatsApp</button>
-  </div>
-
-  <div class="card">
-    <h2>📥 Cargar datos desde otro teléfono</h2>
-    <p class="muted">Selecciona el archivo <b>.json</b> descargado desde el otro teléfono:</p>
-    <input type="file" id="fileImport" accept=".json,application/json" class="sel">
-    <button class="btn tl" onclick="importarDB('combinar')">🔄 Combinar datos (Une pedidos y gastos sin borrar)</button>
-    <button class="btn o" onclick="importarDB('reemplazar')">⚠️ Reemplazar todo con este archivo</button>
-  </div>
-</section>
-
 <script>
 // ================= CONFIG =================
 const EMPRESA="MAKIPAP EIRL", RUT="78.519.024-6", GIRO="Elaboración y venta de sushi con retiro o reparto a domicilio";
-const IVA=0.19, PPM=0.0025, SUELDO_PCT=0.27, SUELDO_MIN=20000;
+const IVA=0.19, PPM=0.0025, SUELDO_PCT=0.27, SUELDO_MIN=20000, UMBRAL_VENTAS=67000;
 const DIAS_PERIODO=10, INICIO_CLAUDIO="2026-11-09";
 const MENU=[["MAKI 1",8000],["MAKI 2",10000],["MAKI 3",12000],["MAKI 4",14000],["MAKI 5",17000],
 ["Maki Burger de pollo",7000],["Maki Burger de Camarón",8000],["Handroll de pollo",3000],
@@ -260,17 +237,14 @@ function persist(){
 function setCfg(k,v){ config[k]=v; persist(); }
 
 // ================= UTILIDADES =================
-function money(v){ 
-  const signo = v < 0 ? "-" : "";
-  return signo + "$" + Math.round(Math.abs(v)).toLocaleString("es-CL").replace(/,/g,"."); 
-}
+function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,/g,"."); }
 function hoy(){ 
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
 }
 function calcNetoIva(t){ const n=Math.round(t/1.19); return [n, t-n]; }
 function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
-function calcSueldo(totalDia){ return Math.max(SUELDO_MIN, Math.round(totalDia*SUELDO_PCT)); }
+function calcSueldo(totalDia){ return totalDia<=UMBRAL_VENTAS ? SUELDO_MIN : Math.round(totalDia*SUELDO_PCT); }
 function claudioDesde(f){ return f>=INICIO_CLAUDIO; }
 
 function nivelStock(tipo,valor,umbral){
@@ -294,7 +268,6 @@ function showTab(t){
   if(t==="stock") renderStock();
   if(t==="imp") renderImp();
   if(t==="bal") renderSueldos();
-  if(t==="db") renderDBStats();
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -382,7 +355,7 @@ function generarPedido(){
   const fh = fecha===hoy() ? ahora.toISOString().slice(0,19).replace("T"," ") : fecha+" 12:00:00";
   const num=(config.ultimo_numero||0)+1; config.ultimo_numero=num;
   
-  pedidos.unshift({id:Date.now(), numero:num, fecha:fh, items, total:t.total, neto:t.neto, iva:t.iva, descuento:t.desc, forma:f, cliente, fono, dir, anulado:0});
+  pedidos.unshift({numero:num, fecha:fh, items, total:t.total, neto:t.neto, iva:t.iva, descuento:t.desc, forma:f, cliente, fono, dir, anulado:0});
   persist();
   alert("Pedido N° "+num+" generado con éxito.");
   limpiar();
@@ -467,19 +440,11 @@ function anularPedido(){
 
 // ================= BALANCE Y SUELDOS =================
 function pedidosDelDia(f){ return pedidos.filter(p=>!p.anulado && (p.fecha||"").slice(0,10)===f); }
-function gastosDelDia(f){ return gastos.filter(g=>(g.fecha||"").slice(0,10)===f); }
-
 function balanceDia(){
   const f=document.getElementById("fechaBal").value||hoy();
   const ps=pedidosDelDia(f);
-  const gs=gastosDelDia(f);
   const out=document.getElementById("outBal");
-  
-  if(!ps.length && !gs.length){ 
-    out.innerHTML="<p class='muted'>No hay pedidos ni gastos activos para "+f+".</p>"; 
-    return; 
-  }
-
+  if(!ps.length){ out.innerHTML="<p class='muted'>No hay pedidos activos para "+f+".</p>"; return; }
   let sumN=0,sumI=0,sumT=0,ventasProd=0,repCli=0,cantRep=0,totEf=0,totTr=0,cEf=0,cTr=0;
   ps.forEach(p=>{
     const rep=p.items.filter(i=>i.nombre.trim().toLowerCase()==="reparto").reduce((s,i)=>s+i.precio*(i.cantidad||1),0);
@@ -488,60 +453,29 @@ function balanceDia(){
     if(rep>0) cantRep+=Math.max(1,Math.round(rep/1000));
     if((p.forma||"Efectivo").toLowerCase().startsWith("efect")){ totEf+=p.total; cEf++; } else { totTr+=p.total; cTr++; }
   });
-
-  // Cálculo de gastos del día
-  let totGastos = 0, gastosFactura = 0, gastosSinFactura = 0, ivaCreditoDia = 0;
-  gs.forEach(g => {
-    totGastos += g.monto;
-    if(g.conFactura){
-      gastosFactura += g.monto;
-      ivaCreditoDia += (g.iva || 0);
-    } else {
-      gastosSinFactura += g.monto;
-    }
-  });
-
   const aporte=cantRep*1000;
   const totalDia=ventasProd-aporte;
-  const utilidadReal = totalDia - totGastos;
-
-  // Cálculo de sueldos (solo si hubo ventas)
-  let sC = 0, sL = 0;
-  if(ps.length > 0){
-    const base=calcSueldo(totalDia);
-    sC=base; sL=claudioDesde(f)?base:0;
-    if(!sueldos[f]) sueldos[f]={totalDia,cindy:sC,claudio:sL,pagC:0,pagL:0};
-    else{
-      sueldos[f].totalDia=totalDia;
-      if(!sueldos[f].pagC) sueldos[f].cindy=sC;
-      if(!sueldos[f].pagL) sueldos[f].claudio=sL;
-    }
-    persist();
+  const base=calcSueldo(totalDia);
+  const sC=base, sL=claudioDesde(f)?base:0;
+  if(!sueldos[f]) sueldos[f]={totalDia,cindy:sC,claudio:sL,pagC:0,pagL:0};
+  else{
+    sueldos[f].totalDia=totalDia;
+    if(!sueldos[f].pagC) sueldos[f].cindy=sC;
+    if(!sueldos[f].pagL) sueldos[f].claudio=sL;
   }
-
-  let detalleGastosHtml = "";
-  if(gs.length > 0){
-    detalleGastosHtml = `<h3>Detalle de Gastos (${gs.length})</h3><table><tr><th>Tipo</th><th>Detalle</th><th>Monto</th></tr>` +
-      gs.map(g => `<tr><td>${g.tipo.split(" ")[0]}</td><td>${g.proveedor || g.descripcion || "-"}</td><td class="gasto-neg">-${money(g.monto)}</td></tr>`).join("") +
-      `</table>`;
-  }
-
+  persist();
   out.innerHTML=`
     <h2>Resumen del día ${f}</h2>
     <table>
       <tr><td>Total productos</td><td>${money(ventasProd)}</td></tr>
-      <tr><td>Entregas (Repartos)</td><td>${cantRep} (${money(repCli)})</td></tr>
+      <tr><td>Entregas (Repartos)</td><td>${cantRep} ($${repCli})</td></tr>
       <tr><td>Efectivo</td><td>${money(totEf)} (${cEf})</td></tr>
       <tr><td>Transferencia</td><td>${money(totTr)} (${cTr})</td></tr>
-      <tr><td><b>TOTAL VENTAS DEL DÍA</b></td><td><b>${money(totalDia)}</b></td></tr>
-      <tr><td class="gasto-neg">Gastos del día (${gs.length})</td><td class="gasto-neg">-${money(totGastos)}</td></tr>
-      <tr style="background:#f1f8e9;"><td><b>SALDO NETO (Ventas - Gastos)</b></td><td class="${utilidadReal>=0?'util-pos':'gasto-neg'}"><b>${money(utilidadReal)}</b></td></tr>
-      <tr><td>IVA Débito (19%)</td><td>${money(sumI)}</td></tr>
-      <tr><td>IVA Crédito Gastos</td><td>${money(ivaCreditoDia)}</td></tr>
+      <tr><td><b>TOTAL DEL DÍA</b></td><td><b>${money(totalDia)}</b></td></tr>
+      <tr><td>IVA 19%</td><td>${money(sumI)}</td></tr>
       <tr><td>PPM 0,25%</td><td>${money(sumN*PPM)}</td></tr>
     </table>
-    ${detalleGastosHtml}
-    <p style="margin-top:10px;"><b>Sueldo Cindy:</b> ${money(sC)} &nbsp;|&nbsp; <b>Sueldo Claudio:</b> ${money(sL)}</p>`;
+    <p><b>Sueldo Cindy:</b> ${money(sC)} &nbsp;|&nbsp; <b>Sueldo Claudio:</b> ${money(sL)}</p>`;
   renderSueldos();
 }
 
@@ -557,11 +491,6 @@ function balanceSemanal(){
     return d >= fIni && d <= fFin;
   });
 
-  const gs = gastos.filter(g => {
-    const d = (g.fecha||"").slice(0,10);
-    return d >= fIni && d <= fFin;
-  });
-
   let tNeto=0, tIva=0, tBruto=0, tRepartos=0, cPedidos=ps.length;
   ps.forEach(p => {
     tNeto += p.neto;
@@ -571,34 +500,14 @@ function balanceSemanal(){
     tRepartos += rep;
   });
 
-  let tGastos = 0, tGastosConFact = 0, tGastosSinFact = 0, tIvaCred = 0;
-  gs.forEach(g => {
-    tGastos += g.monto;
-    if(g.conFactura){
-      tGastosConFact += g.monto;
-      tIvaCred += (g.iva || 0);
-    } else {
-      tGastosSinFact += g.monto;
-    }
-  });
-
-  const ventasSinReparto = tBruto - tRepartos;
-  const saldoPeriodo = ventasSinReparto - tGastos;
-
   out.innerHTML = `
     <h3>Balance desde ${fIni} hasta ${fFin}</h3>
     <table>
       <tr><td>Total Pedidos</td><td>${cPedidos}</td></tr>
       <tr><td>Ventas Netas</td><td>${money(tNeto)}</td></tr>
-      <tr><td>IVA Débito Ventas</td><td>${money(tIva)}</td></tr>
+      <tr><td>IVA Total</td><td>${money(tIva)}</td></tr>
       <tr><td><b>Ventas Brutas Totales</b></td><td><b>${money(tBruto)}</b></td></tr>
-      <tr><td>Cobrado por Repartos</td><td>${money(tRepartos)}</td></tr>
-      <tr><td>Ventas Productos (sin reparto)</td><td>${money(ventasSinReparto)}</td></tr>
-      <tr><td class="gasto-neg">Gastos con factura (${gs.filter(x=>x.conFactura).length})</td><td class="gasto-neg">-${money(tGastosConFact)}</td></tr>
-      <tr><td class="gasto-neg">Gastos sin factura (${gs.filter(x=>!x.conFactura).length})</td><td class="gasto-neg">-${money(tGastosSinFact)}</td></tr>
-      <tr><td class="gasto-neg"><b>TOTAL GASTOS PERIODO</b></td><td class="gasto-neg"><b>-${money(tGastos)}</b></td></tr>
-      <tr><td>IVA Crédito a favor</td><td>${money(tIvaCred)}</td></tr>
-      <tr style="background:#f1f8e9;"><td><b>SALDO NETO DEL PERIODO</b></td><td class="${saldoPeriodo>=0?'util-pos':'gasto-neg'}"><b>${money(saldoPeriodo)}</b></td></tr>
+      <tr><td>Total Cobrado por Repartos</td><td>${money(tRepartos)}</td></tr>
     </table>`;
 }
 
@@ -616,6 +525,18 @@ function renderSueldos(){
     "💼 <b>Claudio</b>: "+money(l.reduce((s,r)=>s+r.sueldo,0))+" ("+l.length+" día(s))</p>"+
     "<table><tr><th>Fecha</th><th>Total día</th><th>Cindy</th><th>Claudio</th></tr>"+
     Object.keys(sueldos).sort().reverse().slice(0,10).map(f=>`<tr><td>${f}</td><td>${money(sueldos[f].totalDia)}</td><td>${money(sueldos[f].cindy)}${sueldos[f].pagC?" ✓":""}</td><td>${money(sueldos[f].claudio)}${sueldos[f].pagL?" ✓":""}</td></tr>`).join("")+"</table>";
+}
+function enviarSueldosCindyWsp(){
+  const c = pendientes("Cindy");
+  const totalAcum = c.reduce((s,r)=>s+r.sueldo,0);
+  // Codifica el objeto sueldos en Base64 para enviarlo directo en el enlace de Cindy
+  const encodedData = btoa(encodeURIComponent(JSON.stringify(sueldos)));
+  // Detecta la ruta base de tu GitHub Pages automáticamente
+  const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  const magicLink = `${baseUrl}cindy.html?data=${encodedData}`;
+  
+  const msg = `🍣 *MAKIPAP - Resumen de Sueldos Cindy*\n\n💰 *Acumulado pendiente:* ${money(totalAcum)} (${c.length} días)\n\nToca el siguiente enlace para actualizar automáticamente tu panel en tu celular:\n${magicLink}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 function retirarSueldo(){
   const persona=document.getElementById("personaSel").value;
@@ -793,128 +714,6 @@ function renderImp(){
   }
 }
 function fmt(d){ return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear(); }
-
-// ================= BASE DE DATOS / RESPALDO =================
-function renderDBStats(){
-  const el = document.getElementById("dbStats");
-  if(!el) return;
-  el.innerHTML = `
-    <b>Estado actual en este teléfono:</b><br>
-    • Pedidos registrados: <b>${pedidos.length}</b> (Último N° ${config.ultimo_numero || 0})<br>
-    • Gastos registrados: <b>${gastos.length}</b><br>
-    • Días de sueldo calculados: <b>${Object.keys(sueldos).length}</b>
-  `;
-}
-
-function exportarDB(){
-  const backup = {
-    empresa: EMPRESA,
-    exportado: new Date().toISOString(),
-    pedidos,
-    gastos,
-    stock,
-    sueldos,
-    config
-  };
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {type: "application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `MakiPap_Respaldo_${hoy()}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function enviarDBWhatsapp(){
-  const f = hoy();
-  const psHoy = pedidosDelDia(f);
-  const gsHoy = gastosDelDia(f);
-  const totVentas = psHoy.reduce((s,p)=>s+p.total, 0);
-  const totGastos = gsHoy.reduce((s,g)=>s+g.monto, 0);
-  
-  let msg = `📊 *RESUMEN MAKIPAP (${f})*\n`;
-  msg += `Pedidos hoy: ${psHoy.length} (${money(totVentas)})\n`;
-  msg += `Gastos hoy: ${gsHoy.length} (-${money(totGastos)})\n`;
-  msg += `Total histórico: ${pedidos.length} pedidos / ${gastos.length} gastos.\n\n`;
-  msg += `_(Recuerda adjuntar el archivo .json descargado si deseas sincronizar el otro teléfono)_`;
-  
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
-function importarDB(modo){
-  const fileInput = document.getElementById("fileImport");
-  if(!fileInput.files || !fileInput.files.length){
-    alert("Primero selecciona un archivo de respaldo (.json).");
-    return;
-  }
-  const file = fileInput.files[0];
-  const reader = new FileReader();
-  reader.onload = function(e){
-    try {
-      const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data.pedidos) || !Array.isArray(data.gastos)){
-        alert("El archivo no tiene el formato válido de MakiPap.");
-        return;
-      }
-
-      if(modo === 'reemplazar'){
-        if(!confirm("¿Seguro que deseas REEMPLAZAR todos los datos de este teléfono con los del archivo?")) return;
-        pedidos = data.pedidos || [];
-        gastos = data.gastos || [];
-        stock = data.stock || {};
-        sueldos = data.sueldos || {};
-        config = data.config || config;
-      } else {
-        // Modo combinar sin duplicar
-        let nuevosPed = 0, nuevosGas = 0;
-        
-        // Unir pedidos verificando por fecha+cliente+total o id
-        const firmasPed = new Set(pedidos.map(p => p.id ? String(p.id) : `${p.fecha}_${p.total}_${p.cliente}`));
-        (data.pedidos || []).forEach(p => {
-          const firma = p.id ? String(p.id) : `${p.fecha}_${p.total}_${p.cliente}`;
-          if(!firmasPed.has(firma)){
-            pedidos.push(p);
-            firmasPed.add(firma);
-            nuevosPed++;
-          }
-        });
-        // Ordenar pedidos por fecha descendente y reajustar último número
-        pedidos.sort((a,b) => (b.fecha||"").localeCompare(a.fecha||""));
-        const maxNum = pedidos.reduce((m,p) => Math.max(m, p.numero||0), config.ultimo_numero||0);
-        config.ultimo_numero = maxNum;
-
-        // Unir gastos verificando por id o fecha+monto+descripcion
-        const firmasGas = new Set(gastos.map(g => g.id ? String(g.id) : `${g.fecha}_${g.monto}_${g.descripcion}`));
-        (data.gastos || []).forEach(g => {
-          const firma = g.id ? String(g.id) : `${g.fecha}_${g.monto}_${g.descripcion}`;
-          if(!firmasGas.has(firma)){
-            gastos.push(g);
-            firmasGas.add(firma);
-            nuevosGas++;
-          }
-        });
-        gastos.sort((a,b) => (b.fecha||"").localeCompare(a.fecha||""));
-
-        // Unir sueldos y stock
-        sueldos = {...(data.sueldos||{}), ...sueldos};
-        stock = {...(data.stock||{}), ...stock};
-
-        alert(`Sincronización completa:\n• ${nuevosPed} pedido(s) nuevo(s) agregado(s)\n• ${nuevosGas} gasto(s) nuevo(s) agregado(s)`);
-      }
-
-      persist();
-      renderDBStats();
-      renderImp();
-      updStockBanner();
-      fileInput.value = "";
-    } catch(err) {
-      alert("Error al leer el archivo: " + err.message);
-    }
-  };
-  reader.readAsText(file);
-}
 
 // ================= INICIO =================
 window.addEventListener('DOMContentLoaded', () => {
