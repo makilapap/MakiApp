@@ -91,6 +91,11 @@
   .envase-num { font-size:24px; font-weight:900; text-align:center; letter-spacing:1px; }
   .envase-tot { font-size:32px; font-weight:900; text-align:center; margin:8px 0; color:#ef4444; }
   body:not(.dark) .envase-tot { color:#c62828; }
+  .envase-estado { text-align:center; font-weight:900; font-size:15px; padding:4px 8px; border-radius:6px; margin-bottom:6px; }
+  .estado-pagado { background:#dcfce7; color:#166534; }
+  .estado-cobrar { background:#fee2e2; color:#991b1b; }
+  body.dark .estado-pagado { background:#14532d; color:#bbf7d0; }
+  body.dark .estado-cobrar { background:#7f1d1d; color:#fecaca; }
   .btn-mini { border:none; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:bold; color:#fff; cursor:pointer; }
 </style>
 </head>
@@ -128,11 +133,18 @@
     <label class="fld">Total</label>
     <input class="sel" id="manTotal" type="number" min="0" placeholder="Se calcula del menú o ingresa total manual" oninput="updTicketEnvase()">
 
+    <label class="fld">Cobro al repartidor / Estado de pago</label>
+    <select class="sel" id="manEstadoPago" onchange="updTicketEnvase()">
+      <option value="cobrar">Por cobrar al repartidor</option>
+      <option value="pagado">PAGADO (Transferido — no cobrar al repartidor)</option>
+    </select>
+
     <label class="fld">Teléfono</label>
     <input class="sel" id="cliFono" placeholder="+569..." oninput="updTicketEnvase()">
 
     <div class="envase-ticket" id="ticketEnvaseBox">
       <div class="envase-num" id="envNum">PEDIDO N° ---</div>
+      <div id="envEstado" class="envase-estado estado-cobrar">POR COBRAR AL REPARTIDOR</div>
       <div id="envTotal" class="envase-tot">$0</div>
       <div id="envDetalle" style="font-size:13px; line-height:1.45;"></div>
     </div>
@@ -389,7 +401,6 @@ function money(v){ return "$" + Math.round(v).toLocaleString("es-CL").replace(/,
 function calcNetoIva(t){ const n=Math.round(t/1.19); return [n, t-n]; }
 function esDiaHabil(f){ const d=new Date(f+"T12:00:00"); return d.getDay()>=1 && d.getDay()<=5; }
 
-// Regla: 27% del día, con un mínimo garantizado de $20.000
 function calcSueldo(totalDia){ 
   const calculado = Math.round(totalDia * SUELDO_PCT);
   return calculado < SUELDO_MIN ? SUELDO_MIN : calculado; 
@@ -482,14 +493,26 @@ function getTotalEnvaseActual(){
   if(manVal !== "") return Math.max(0, parseInt(manVal)||0);
   return calcularTotales(getItems()).total;
 }
+function isPagadoParaRepartidor(){
+  return document.getElementById("manEstadoPago").value === "pagado";
+}
 function updTicketEnvase(){
   const num = getPedidoNumeroActual();
   const dir = document.getElementById("cliDir").value.trim() || "Retiro en local";
   const nom = document.getElementById("cliNombre").value.trim() || "Cliente";
   const tot = getTotalEnvaseActual();
   const fono = document.getElementById("cliFono").value.trim() || "-";
+  const pagado = isPagadoParaRepartidor();
 
   document.getElementById("envNum").textContent = `PEDIDO N° ${num}`;
+  const estEl = document.getElementById("envEstado");
+  if(pagado){
+    estEl.textContent = "PAGADO ✓ (NO COBRAR AL REPARTIDOR)";
+    estEl.className = "envase-estado estado-pagado";
+  } else {
+    estEl.textContent = "POR COBRAR AL REPARTIDOR";
+    estEl.className = "envase-estado estado-cobrar";
+  }
   document.getElementById("envTotal").textContent = money(tot);
   document.getElementById("envDetalle").innerHTML =
     `<b>Dirección:</b> ${dir}<br>` +
@@ -502,6 +525,7 @@ function textoWhatsappClienteEnvase(){
   const nom = document.getElementById("cliNombre").value.trim() || "Cliente";
   const tot = getTotalEnvaseActual();
   const fono = document.getElementById("cliFono").value.trim() || "-";
+  const pagado = isPagadoParaRepartidor();
   const items = getItems();
 
   let m = `🍣 *${EMPRESA}*\n`;
@@ -509,6 +533,7 @@ function textoWhatsappClienteEnvase(){
   m += `*Dirección:* ${dir}\n`;
   m += `*Nombre:* ${nom}\n`;
   m += `*Total:* *${money(tot)}*\n`;
+  m += `*Estado pago:* ${pagado ? "PAGADO (Transferido)" : "Por cobrar al repartidor"}\n`;
   m += `*Teléfono:* ${fono}\n`;
   if(items.length){
     m += `\n*Detalle:*\n`;
@@ -522,11 +547,13 @@ function textoWhatsappRepartidorEnvase(){
   const nom = document.getElementById("cliNombre").value.trim() || "Cliente";
   const tot = getTotalEnvaseActual();
   const fono = document.getElementById("cliFono").value.trim() || "-";
+  const pagado = isPagadoParaRepartidor();
 
   return `🛵 *REPARTO — PEDIDO N° ${num}*\n` +
          `📍 *Dirección:* ${dir}\n` +
          `👤 *Nombre:* ${nom}\n` +
-         `💵 *Total:* *${money(tot)}*\n` +
+         `💵 *Total pedido:* *${money(tot)}*\n` +
+         `✅ *Cobro repartidor:* *${pagado ? "PAGADO ($0 A COBRAR)" : "COBRAR " + money(tot)}*\n` +
          `📞 *Teléfono:* ${fono}`;
 }
 function copiarTextoSeguro(texto, aviso){
@@ -546,24 +573,27 @@ function imprimirTicketEnvase(){
   const nom = document.getElementById("cliNombre").value.trim() || "Cliente";
   const tot = getTotalEnvaseActual();
   const fono = document.getElementById("cliFono").value.trim() || "-";
+  const pagado = isPagadoParaRepartidor();
   const items = getItems();
 
   const itemsHtml = items.length
     ? `<hr><div style="font-size:13px;text-align:left;">${items.map(i=>`<div>${i.cantidad}x ${i.nombre} (${money(i.precio*i.cantidad)})</div>`).join("")}</div>`
     : "";
 
-  const win = window.open("", "_blank", "width=360,height=540");
+  const win = window.open("", "_blank", "width=360,height=560");
   if(!win){ alert("Permite las ventanas emergentes para imprimir."); return; }
   win.document.write(`
     <!doctype html><html><head><title>Ticket Envase #${num}</title>
     <style>
       body{font-family:system-ui,-apple-system,sans-serif;padding:14px;max-width:300px;margin:0 auto;color:#000;}
       .top{font-size:24px;font-weight:900;text-align:center;border-bottom:2px solid #000;padding-bottom:6px;}
-      .big{font-size:34px;font-weight:900;text-align:center;margin:12px 0;}
+      .badge{font-size:14px;font-weight:900;text-align:center;margin-top:8px;padding:4px;border:1.5px solid #000;}
+      .big{font-size:34px;font-weight:900;text-align:center;margin:10px 0;}
       .row{font-size:14px;margin:5px 0;}
       hr{border:0;border-top:1px dashed #000;margin:10px 0;}
     </style></head><body>
       <div class="top">PEDIDO N° ${num}</div>
+      <div class="badge">${pagado ? "PAGADO — NO COBRAR AL REPARTIDOR" : "COBRAR AL REPARTIDOR"}</div>
       <div class="big">${money(tot)}</div>
       <hr>
       <div class="row"><b>Dirección:</b> ${dir}</div>
@@ -614,8 +644,9 @@ function generarPedido(){
   const manTotVal = parseInt(document.getElementById("manTotal").value);
   const totalFinal = (!isNaN(manTotVal) && manTotVal >= 0) ? manTotVal : t.total;
   const [netoFinal, ivaFinal] = calcNetoIva(totalFinal);
+  const pagadoRep = isPagadoParaRepartidor();
 
-  pedidos.unshift({numero:num, fecha:fh, items, total:totalFinal, neto:netoFinal, iva:ivaFinal, descuento:t.desc, forma:f, cliente, fono, dir, anulado:0});
+  pedidos.unshift({numero:num, fecha:fh, items, total:totalFinal, neto:netoFinal, iva:ivaFinal, descuento:t.desc, forma:f, pagadoRepartidor:pagadoRep, cliente, fono, dir, anulado:0});
   persist();
   alert("Pedido N° "+num+" generado con éxito.");
   limpiar();
@@ -628,6 +659,7 @@ function limpiar(){
   document.getElementById("formaPago").value="Efectivo";
   document.getElementById("manPedidoNum").value="";
   document.getElementById("manTotal").value="";
+  document.getElementById("manEstadoPago").value="cobrar";
   document.getElementById("cliNombre").value="";
   document.getElementById("cliFono").value="";
   document.getElementById("cliDir").value="";
@@ -882,7 +914,6 @@ function calcularSaldoRepartidor(){
     if(rep > 0){
       const cant = Math.max(1, Math.round(rep / 1000));
       entregas += cant;
-      // $1.000 paga el cliente + $1.000 agrega el local = $2.000 por entrega
       montoEntregas += cant * 2000;
     }
   });
