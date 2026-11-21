@@ -6,51 +6,92 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="MAKIPAP Ticket" />
+<meta name="theme-color" content="#1a1a2e" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231a1a2e'/%3E%3Ctext x='50' y='67' font-size='54' text-anchor='middle' font-family='system-ui,sans-serif'%3E%F0%9F%8D%A3%3C/text%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231a1a2e'/%3E%3Ctext x='50' y='67' font-size='54' text-anchor='middle' font-family='system-ui,sans-serif'%3E%F0%9F%8D%A3%3C/text%3E%3C/svg%3E" />
 <title>MAKIPAP Ticket</title>
 <style>
-  :root { font-family: system-ui, -apple-system, sans-serif; color:#111827; background:#f5f5f5; }
+  :root {
+    font-family: system-ui, -apple-system, sans-serif;
+    color:#111827;
+    background:#f5f5f5;
+    --bg:#f5f5f5;
+    --card:#fff;
+    --text:#111827;
+    --muted:#666;
+    --border:#ddd;
+    --row-border:#eee;
+    --input-bg:#fff;
+    --textarea-bg:#fafafa;
+    --tot-bg:#fff8e1;
+    --sechdr-bg:#e8e8e8;
+    --th-bg:#333;
+    --nav-bg:#263238;
+  }
+  body.dark {
+    color:#e5e7eb;
+    background:#0f172a;
+    --bg:#0f172a;
+    --card:#1e293b;
+    --text:#e5e7eb;
+    --muted:#94a3b8;
+    --border:#334155;
+    --row-border:#293548;
+    --input-bg:#0f172a;
+    --textarea-bg:#0f172a;
+    --tot-bg:#2d2410;
+    --sechdr-bg:#334155;
+    --th-bg:#0f172a;
+    --nav-bg:#111827;
+  }
   * { box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin:0; padding-bottom:80px; -webkit-text-size-adjust: 100%; }
-  header { background:#1a1a2e; color:#fff; padding:12px 14px; position:sticky; top:0; z-index:10; }
+  body { margin:0; padding-bottom:80px; -webkit-text-size-adjust: 100%; background:var(--bg); color:var(--text); transition: background .2s, color .2s; }
+  header { background:#1a1a2e; color:#fff; padding:12px 14px; position:sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:8px; }
   header h1 { margin:0; font-size:17px; }
   header small { color:#aaa; font-size:11px; }
+  .theme-btn { background:#2e3a59; color:#fff; border:1px solid #475569; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:bold; cursor:pointer; white-space:nowrap; }
   #bannerTri, #bannerStock { font-size:12px; font-weight:bold; color:#fff; padding:8px 12px; cursor:pointer; }
-  nav { position:fixed; bottom:0; left:0; right:0; display:flex; background:#263238; z-index:10; padding-bottom:env(safe-area-inset-bottom); box-shadow: 0 -2px 5px rgba(0,0,0,0.2); overflow-x: auto; }
+  nav { position:fixed; bottom:0; left:0; right:0; display:flex; background:var(--nav-bg); z-index:10; padding-bottom:env(safe-area-inset-bottom); box-shadow: 0 -2px 5px rgba(0,0,0,0.2); overflow-x: auto; }
   nav button { flex:1; min-width: 65px; background:none; border:none; color:#cfd8dc; font-size:10px; padding:8px 2px; cursor:pointer; white-space: nowrap; }
   nav button.active { color:#ffb300; font-weight:bold; }
   nav span { display:block; font-size:18px; }
   section.tab { display:none; padding:10px; max-width:640px; margin:0 auto; }
   section.tab.active { display:block; }
-  .card { background:#fff; border-radius:10px; padding:12px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,.12); }
-  .menurow { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid #eee; }
+  .card { background:var(--card); border-radius:10px; padding:12px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,.18); }
+  .menurow { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--row-border); }
   .menurow .nm { flex:1; font-size:14px; }
-  .menurow .pr { color:#006600; font-size:13px; width:72px; text-align:right; }
-  .menurow input { width:52px; text-align:center; font-size:16px; padding:6px 4px; border:1px solid #ccc; border-radius:6px; }
+  .menurow .pr { color:#22c55e; font-size:13px; width:72px; text-align:right; }
+  body:not(.dark) .menurow .pr { color:#006600; }
+  .menurow input { width:52px; text-align:center; font-size:16px; padding:6px 4px; border:1px solid var(--border); border-radius:6px; background:var(--input-bg); color:var(--text); }
   button.btn { border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:bold; color:#fff; width:100%; margin:6px 0; cursor:pointer; }
   .g { background:#2e7d32; } .b { background:#1565c0; } .w { background:#25d366; }
   .o { background:#ef6c00; } .r { background:#c62828; } .gr { background:#78909c; } .tl { background:#00838f; } .pu { background:#6a1b9a; }
-  .tot { display:flex; justify-content:space-between; background:#fff8e1; padding:10px; border-radius:8px; font-size:15px; }
-  .tot b { color:#c62828; font-size:18px; }
-  textarea { width:100%; font-family:monospace; font-size:12px; min-height:150px; padding:8px; border:1px solid #ddd; border-radius:8px; background:#fafafa; resize:vertical; }
-  input.sel, select.sel { width:100%; padding:10px; font-size:15px; margin:4px 0; border:1px solid #ccc; border-radius:8px; background:#fff; }
-  label.fld { font-size:12px; color:#555; display:block; margin-top:6px; }
+  .tot { display:flex; justify-content:space-between; background:var(--tot-bg); padding:10px; border-radius:8px; font-size:15px; }
+  .tot b { color:#ef4444; font-size:18px; }
+  body:not(.dark) .tot b { color:#c62828; }
+  textarea { width:100%; font-family:monospace; font-size:12px; min-height:150px; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--textarea-bg); color:var(--text); resize:vertical; }
+  input.sel, select.sel { width:100%; padding:10px; font-size:15px; margin:4px 0; border:1px solid var(--border); border-radius:8px; background:var(--input-bg); color:var(--text); }
+  label.fld { font-size:12px; color:var(--muted); display:block; margin-top:6px; }
   table { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
-  th, td { border:1px solid #ddd; padding:6px; text-align:right; }
-  th { background:#333; color:#fff; }
+  th, td { border:1px solid var(--border); padding:6px; text-align:right; }
+  th { background:var(--th-bg); color:#fff; }
   td:first-child, th:first-child { text-align:left; }
-  .stockrow { display:flex; align-items:center; gap:6px; padding:5px 0; border-bottom:1px solid #eee; font-size:13px; }
+  .stockrow { display:flex; align-items:center; gap:6px; padding:5px 0; border-bottom:1px solid var(--row-border); font-size:13px; }
   .stockrow .nm { flex:1; }
   .stockrow .ind { width:16px; height:16px; border-radius:4px; flex:none; }
-  .stockrow input, .stockrow select { font-size:13px; padding:4px; border:1px solid #ccc; border-radius:6px; }
+  .stockrow input, .stockrow select { font-size:13px; padding:4px; border:1px solid var(--border); border-radius:6px; background:var(--input-bg); color:var(--text); }
   h2 { font-size:16px; margin:6px 0; }
-  .muted { color:#666; font-size:12px; }
-  .sechdr { background:#e8e8e8; font-weight:bold; padding:6px 8px; border-radius:6px; margin-top:10px; }
+  .muted { color:var(--muted); font-size:12px; }
+  .sechdr { background:var(--sechdr-bg); font-weight:bold; padding:6px 8px; border-radius:6px; margin-top:10px; }
   .alerta { padding:8px 10px; border-radius:8px; color:#fff; font-size:13px; font-weight:bold; margin-bottom:8px; }
+  .tag-nov { display:inline-block; font-size:10px; padding:1px 5px; border-radius:4px; margin-left:4px; background:#fef3c7; color:#92400e; font-weight:bold; }
+  body.dark .tag-nov { background:#451a03; color:#fde68a; }
 </style>
 </head>
 <body>
 <header>
   <h1>🍣 MAKIPAP EIRL <small>RUT 78.519.024-6</small></h1>
+  <button class="theme-btn" id="btnTema" onclick="toggleTema()">🌙 Oscuro</button>
 </header>
 <div id="bannerTri" style="background:#2e7d32" onclick="showTab('imp')"></div>
 <div id="bannerStock" style="background:#4e342e" onclick="showTab('stock')"></div>
@@ -122,7 +163,22 @@
     <h2>Sueldos pendientes</h2>
     <div id="outSueldos"></div>
     <button class="btn w" onclick="enviarSueldosCindyWsp()">📤 Enviar estado de sueldos a Cindy (WhatsApp)</button>
-    <label class="fld">Retirar sueldo de (máx 10 días hábiles)</label>
+
+    <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--row-border);">
+      <h3 style="font-size:14px; margin:4px 0;">Marcar día como Ausente o Feriado</h3>
+      <label class="fld">Fecha</label>
+      <input class="sel" id="novFecha" type="date">
+      <label class="fld">Persona</label>
+      <select class="sel" id="novPersona"><option>Cindy</option><option>Claudio</option></select>
+      <label class="fld">Motivo / Estado</label>
+      <select class="sel" id="novTipo">
+        <option value="Ausente">Ausente ($0)</option>
+        <option value="Feriado">Feriado ($0)</option>
+      </select>
+      <button class="btn gr" onclick="marcarNovedadSueldo()">🗓 Aplicar Ausente / Feriado</button>
+    </div>
+
+    <label class="fld" style="margin-top:12px;">Retirar sueldo de (máx 10 días hábiles)</label>
     <select class="sel" id="personaSel"><option>Cindy</option><option>Claudio</option></select>
     <button class="btn g" onclick="retirarSueldo()">💰 Generar retiro de sueldo</button>
     <div id="outRetiro"></div>
@@ -135,6 +191,7 @@
     <input class="sel" type="file" id="archivoRespaldo" accept=".json" onchange="importarRespaldo(event)">
   </div>
 </section>
+
 <!-- ================= REPARTOS ================= -->
 <section class="tab" id="tab-rep">
   <div class="card">
@@ -237,11 +294,24 @@ let gastos  = load("gastos", []);
 let stock   = load("stock", {});        
 let sueldos = load("sueldos", {});      
 let config  = load("config", {ultimo_numero:0, url_distribuidora:""});
+let temaOscuro = load("dark", false);
 
 function persist(){ 
   save("pedidos",pedidos); save("gastos",gastos); save("stock",stock); save("sueldos",sueldos); save("config",config); 
 }
 function setCfg(k,v){ config[k]=v; persist(); }
+
+// ================= TEMA OSCURO =================
+function aplicarTema(){
+  document.body.classList.toggle("dark", !!temaOscuro);
+  const btn = document.getElementById("btnTema");
+  if(btn) btn.textContent = temaOscuro ? "☀️ Claro" : "🌙 Oscuro";
+}
+function toggleTema(){
+  temaOscuro = !temaOscuro;
+  save("dark", temaOscuro);
+  aplicarTema();
+}
 
 // ================= HORA DE CHILE =================
 function hoy(){
@@ -304,14 +374,6 @@ function buildMenu(){
        <label class="fld">Precio $</label><input class="sel" id="mPre" type="number" pattern="[0-9]*" inputmode="numeric" min="0">
        <button class="btn g" onclick="addManual()">+ Agregar ítem manual</button>
        <div id="manuales"></div>`;
-  
-  const h = hoy();
-  document.getElementById("fechaPed").value=h;
-  document.getElementById("fechaBal").value=h;
-  document.getElementById("semInicio").value=h;
-  document.getElementById("semFin").value=h;
-  document.getElementById("gFecha").value=h;
-  document.getElementById("repFecha").value=h;
   renderManuales();
 }
 let manualItems=[];
@@ -476,13 +538,14 @@ function balanceDia(){
   const aporte=cantRep*1000;
   const totalDia=ventasProd-aporte;
   const base=calcSueldo(totalDia);
-  const sC=base, sL=claudioDesde(f)?base:0;
-  if(!sueldos[f]) sueldos[f]={totalDia,cindy:sC,claudio:sL,pagC:0,pagL:0};
+  if(!sueldos[f]) sueldos[f]={totalDia,cindy:base,claudio:claudioDesde(f)?base:0,pagC:0,pagL:0,novC:"",novL:""};
   else{
     sueldos[f].totalDia=totalDia;
-    if(!sueldos[f].pagC) sueldos[f].cindy=sC;
-    if(!sueldos[f].pagL) sueldos[f].claudio=sL;
+    if(!sueldos[f].pagC && !sueldos[f].novC) sueldos[f].cindy=base;
+    if(!sueldos[f].pagL && !sueldos[f].novL) sueldos[f].claudio=claudioDesde(f)?base:0;
   }
+  const sC = sueldos[f].cindy;
+  const sL = sueldos[f].claudio;
   persist();
   out.innerHTML=`
     <h2>Resumen del día ${f}</h2>
@@ -496,7 +559,7 @@ function balanceDia(){
       <tr><td>IVA 19%</td><td>${money(sumI)}</td></tr>
       <tr><td>PPM 0,25%</td><td>${money(sumN*PPM)}</td></tr>
     </table>
-    <p><b>Sueldo Cindy:</b> ${money(sC)} &nbsp;|&nbsp; <b>Sueldo Claudio:</b> ${money(sL)}</p>`;
+    <p><b>Sueldo Cindy:</b> ${money(sC)} ${sueldos[f].novC?`<span class="tag-nov">${sueldos[f].novC}</span>`:""} &nbsp;|&nbsp; <b>Sueldo Claudio:</b> ${money(sL)} ${sueldos[f].novL?`<span class="tag-nov">${sueldos[f].novL}</span>`:""}</p>`;
   renderSueldos();
 }
 
@@ -505,6 +568,7 @@ function balanceSemanal(){
   const fFin = document.getElementById("semFin").value;
   const out = document.getElementById("outSemanal");
   if(!fIni || !fFin){ out.innerHTML="<p class='muted'>Seleccione fecha de inicio y fin.</p>"; return; }
+  if(fIni > fFin){ out.innerHTML="<p class='muted'>La fecha de inicio no puede ser mayor a la fecha de fin.</p>"; return; }
   
   const ps = pedidos.filter(p => {
     if(p.anulado) return false;
@@ -512,29 +576,75 @@ function balanceSemanal(){
     return d >= fIni && d <= fFin;
   });
 
-  let tNeto=0, tIva=0, tBruto=0, tRepartos=0, cPedidos=ps.length;
+  const gs = gastos.filter(g => {
+    const d = (g.fecha||"").slice(0,10);
+    return d >= fIni && d <= fFin;
+  });
+
+  let tNeto=0, tIva=0, tBruto=0, tRepartos=0, totEf=0, totTr=0, cEf=0, cTr=0, cPedidos=ps.length;
   ps.forEach(p => {
     tNeto += p.neto;
     tIva += p.iva;
     tBruto += p.total;
     const rep = p.items.filter(i => i.nombre.trim().toLowerCase()==="reparto").reduce((s,i)=>s+i.precio*(i.cantidad||1),0);
     tRepartos += rep;
+    if((p.forma||"Efectivo").toLowerCase().startsWith("efect")){ totEf+=p.total; cEf++; }
+    else { totTr+=p.total; cTr++; }
   });
+
+  const totGastos = gs.reduce((s,g) => s + (parseInt(g.monto)||0), 0);
+  const balancePeriodo = tBruto - totGastos;
 
   out.innerHTML = `
     <h3>Balance desde ${fIni} hasta ${fFin}</h3>
     <table>
       <tr><td>Total Pedidos</td><td>${cPedidos}</td></tr>
+      <tr><td>Efectivo</td><td>${money(totEf)} (${cEf})</td></tr>
+      <tr><td>Transferencia</td><td>${money(totTr)} (${cTr})</td></tr>
+      <tr><td><b>TOTAL BRUTO</b></td><td><b>${money(tBruto)}</b></td></tr>
       <tr><td>Ventas Netas</td><td>${money(tNeto)}</td></tr>
       <tr><td>IVA Total</td><td>${money(tIva)}</td></tr>
-      <tr><td><b>Ventas Brutas Totales</b></td><td><b>${money(tBruto)}</b></td></tr>
       <tr><td>Total Cobrado por Repartos</td><td>${money(tRepartos)}</td></tr>
+      <tr><td>Gastos del periodo (${gs.length})</td><td>${money(totGastos)}</td></tr>
+      <tr><td><b>TOTAL DEL PERIODO (Bruto - Gastos)</b></td><td><b>${money(balancePeriodo)}</b></td></tr>
     </table>`;
 }
 
+function marcarNovedadSueldo(){
+  const f = document.getElementById("novFecha").value || hoy();
+  const persona = document.getElementById("novPersona").value;
+  const tipo = document.getElementById("novTipo").value;
+
+  if(!sueldos[f]){
+    const ps = pedidosDelDia(f);
+    let ventasProd=0, cantRep=0;
+    ps.forEach(p=>{
+      const rep=p.items.filter(i=>i.nombre.trim().toLowerCase()==="reparto").reduce((s,i)=>s+i.precio*(i.cantidad||1),0);
+      ventasProd+=p.total-rep;
+      if(rep>0) cantRep+=Math.max(1,Math.round(rep/1000));
+    });
+    const base = calcSueldo(ventasProd - cantRep*1000);
+    sueldos[f] = { totalDia: ventasProd - cantRep*1000, cindy: base, claudio: claudioDesde(f)?base:0, pagC:0, pagL:0, novC:"", novL:"" };
+  }
+
+  if(persona === "Cindy"){
+    sueldos[f].cindy = 0;
+    sueldos[f].pagC = 1;
+    sueldos[f].novC = tipo;
+  } else {
+    sueldos[f].claudio = 0;
+    sueldos[f].pagL = 1;
+    sueldos[f].novL = tipo;
+  }
+
+  persist();
+  renderSueldos();
+  alert(`Día ${f} marcado como ${tipo} para ${persona} ($0).`);
+}
+
 function pendientes(persona){
-  const colP=persona==="Cindy"?"pagC":"pagL", colS=persona==="Cindy"?"cindy":"claudio";
-  return Object.keys(sueldos).sort().filter(f=>!sueldos[f][colP] && sueldos[f][colS]>0)
+  const colP=persona==="Cindy"?"pagC":"pagL", colS=persona==="Cindy"?"cindy":"claudio", colN=persona==="Cindy"?"novC":"novL";
+  return Object.keys(sueldos).sort().filter(f=>!sueldos[f][colP] && !sueldos[f][colN] && sueldos[f][colS]>0)
     .map(f=>({fecha:f,total:sueldos[f].totalDia,sueldo:sueldos[f][colS]}));
 }
 function renderSueldos(){
@@ -545,7 +655,12 @@ function renderSueldos(){
     "<p>💼 <b>Cindy</b>: "+money(c.reduce((s,r)=>s+r.sueldo,0))+" ("+c.length+" día(s))<br>"+
     "💼 <b>Claudio</b>: "+money(l.reduce((s,r)=>s+r.sueldo,0))+" ("+l.length+" día(s))</p>"+
     "<table><tr><th>Fecha</th><th>Total día</th><th>Cindy</th><th>Claudio</th></tr>"+
-    Object.keys(sueldos).sort().reverse().slice(0,10).map(f=>`<tr><td>${f}</td><td>${money(sueldos[f].totalDia)}</td><td>${money(sueldos[f].cindy)}${sueldos[f].pagC?" ✓":""}</td><td>${money(sueldos[f].claudio)}${sueldos[f].pagL?" ✓":""}</td></tr>`).join("")+"</table>";
+    Object.keys(sueldos).sort().reverse().slice(0,10).map(f=>{
+      const s = sueldos[f];
+      const tagC = s.novC ? `<span class="tag-nov">${s.novC}</span>` : (s.pagC ? " ✓" : "");
+      const tagL = s.novL ? `<span class="tag-nov">${s.novL}</span>` : (s.pagL ? " ✓" : "");
+      return `<tr><td>${f}</td><td>${money(s.totalDia)}</td><td>${money(s.cindy)}${tagC}</td><td>${money(s.claudio)}${tagL}</td></tr>`;
+    }).join("")+"</table>";
 }
 function enviarSueldosCindyWsp(){
   const c = pendientes("Cindy");
@@ -760,31 +875,7 @@ function renderImp(){
 }
 function fmt(d){ return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear(); }
 
-// ================= INICIO =================
-window.addEventListener('DOMContentLoaded', () => {
-  buildMenu();
-  
-  // Asigna la fecha correcta de Chile al iniciar
-  const fechaHoy = hoy();
-  const elPed = document.getElementById("fechaPed");
-  const elBal = document.getElementById("fechaBal");
-  const elSemIni = document.getElementById("semInicio");
-  const elSemFin = document.getElementById("semFin");
-  const elGFecha = document.getElementById("gFecha");
-  const elRepFecha = document.getElementById("repFecha");
-
-  if(elPed) elPed.value = fechaHoy;
-  if(elBal) elBal.value = fechaHoy;
-  if(elSemIni) elSemIni.value = fechaHoy;
-  if(elSemFin) elSemFin.value = fechaHoy;
-  if(elGFecha) elGFecha.value = fechaHoy;
-  if(elRepFecha) elRepFecha.value = fechaHoy;
-
-  updPreview();
-  updStockBanner();
-  renderImp();
-});
-  // ================= RESPALDO Y RESTAURACIÓN =================
+// ================= RESPALDO Y RESTAURACIÓN =================
 function exportarRespaldo() {
   const datos = {
     pedidos: pedidos,
@@ -829,6 +920,23 @@ function importarRespaldo(event) {
   };
   reader.readAsText(file);
 }
+
+// ================= INICIO =================
+window.addEventListener('DOMContentLoaded', () => {
+  aplicarTema();
+  buildMenu();
+  
+  const fechaHoy = hoy();
+  const idsFecha = ["fechaPed", "fechaBal", "semInicio", "semFin", "novFecha", "gFecha", "repFecha"];
+  idsFecha.forEach(idEl => {
+    const el = document.getElementById(idEl);
+    if(el) el.value = fechaHoy;
+  });
+
+  updPreview();
+  updStockBanner();
+  renderImp();
+});
 </script>
 </body>
 </html>
