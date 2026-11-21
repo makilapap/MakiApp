@@ -91,11 +91,8 @@
   .envase-num { font-size:24px; font-weight:900; text-align:center; letter-spacing:1px; }
   .envase-tot { font-size:32px; font-weight:900; text-align:center; margin:8px 0; color:#ef4444; }
   body:not(.dark) .envase-tot { color:#c62828; }
-  .envase-estado { text-align:center; font-weight:900; font-size:15px; padding:4px 8px; border-radius:6px; margin-bottom:6px; }
-  .estado-pagado { background:#dcfce7; color:#166534; }
-  .estado-cobrar { background:#fee2e2; color:#991b1b; }
-  body.dark .estado-pagado { background:#14532d; color:#bbf7d0; }
-  body.dark .estado-cobrar { background:#7f1d1d; color:#fecaca; }
+  .envase-pagado { font-size:30px; font-weight:900; text-align:center; margin:8px 0; padding:6px 10px; border-radius:8px; background:#dcfce7; color:#166534; }
+  body.dark .envase-pagado { background:#14532d; color:#bbf7d0; }
   .btn-mini { border:none; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:bold; color:#fff; cursor:pointer; }
 </style>
 </head>
@@ -133,10 +130,10 @@
     <label class="fld">Total</label>
     <input class="sel" id="manTotal" type="number" min="0" placeholder="Se calcula del menú o ingresa total manual" oninput="updTicketEnvase()">
 
-    <label class="fld">Cobro al repartidor / Estado de pago</label>
+    <label class="fld">Estado para el repartidor</label>
     <select class="sel" id="manEstadoPago" onchange="updTicketEnvase()">
       <option value="cobrar">Por cobrar al repartidor</option>
-      <option value="pagado">PAGADO (Transferido — no cobrar al repartidor)</option>
+      <option value="pagado">PAGADO</option>
     </select>
 
     <label class="fld">Teléfono</label>
@@ -144,7 +141,6 @@
 
     <div class="envase-ticket" id="ticketEnvaseBox">
       <div class="envase-num" id="envNum">PEDIDO N° ---</div>
-      <div id="envEstado" class="envase-estado estado-cobrar">POR COBRAR AL REPARTIDOR</div>
       <div id="envTotal" class="envase-tot">$0</div>
       <div id="envDetalle" style="font-size:13px; line-height:1.45;"></div>
     </div>
@@ -505,15 +501,14 @@ function updTicketEnvase(){
   const pagado = isPagadoParaRepartidor();
 
   document.getElementById("envNum").textContent = `PEDIDO N° ${num}`;
-  const estEl = document.getElementById("envEstado");
+  const totEl = document.getElementById("envTotal");
   if(pagado){
-    estEl.textContent = "PAGADO ✓ (NO COBRAR AL REPARTIDOR)";
-    estEl.className = "envase-estado estado-pagado";
+    totEl.textContent = "PAGADO";
+    totEl.className = "envase-pagado";
   } else {
-    estEl.textContent = "POR COBRAR AL REPARTIDOR";
-    estEl.className = "envase-estado estado-cobrar";
+    totEl.textContent = money(tot);
+    totEl.className = "envase-tot";
   }
-  document.getElementById("envTotal").textContent = money(tot);
   document.getElementById("envDetalle").innerHTML =
     `<b>Dirección:</b> ${dir}<br>` +
     `<b>Nombre:</b> ${nom}<br>` +
@@ -533,7 +528,7 @@ function textoWhatsappClienteEnvase(){
   m += `*Dirección:* ${dir}\n`;
   m += `*Nombre:* ${nom}\n`;
   m += `*Total:* *${money(tot)}*\n`;
-  m += `*Estado pago:* ${pagado ? "PAGADO (Transferido)" : "Por cobrar al repartidor"}\n`;
+  if(pagado) m += `*Estado:* *PAGADO*\n`;
   m += `*Teléfono:* ${fono}\n`;
   if(items.length){
     m += `\n*Detalle:*\n`;
@@ -552,8 +547,7 @@ function textoWhatsappRepartidorEnvase(){
   return `🛵 *REPARTO — PEDIDO N° ${num}*\n` +
          `📍 *Dirección:* ${dir}\n` +
          `👤 *Nombre:* ${nom}\n` +
-         `💵 *Total pedido:* *${money(tot)}*\n` +
-         `✅ *Cobro repartidor:* *${pagado ? "PAGADO ($0 A COBRAR)" : "COBRAR " + money(tot)}*\n` +
+         `💵 *Cobro:* *${pagado ? "PAGADO" : money(tot)}*\n` +
          `📞 *Teléfono:* ${fono}`;
 }
 function copiarTextoSeguro(texto, aviso){
@@ -587,14 +581,12 @@ function imprimirTicketEnvase(){
     <style>
       body{font-family:system-ui,-apple-system,sans-serif;padding:14px;max-width:300px;margin:0 auto;color:#000;}
       .top{font-size:24px;font-weight:900;text-align:center;border-bottom:2px solid #000;padding-bottom:6px;}
-      .badge{font-size:14px;font-weight:900;text-align:center;margin-top:8px;padding:4px;border:1.5px solid #000;}
-      .big{font-size:34px;font-weight:900;text-align:center;margin:10px 0;}
+      .big{font-size:34px;font-weight:900;text-align:center;margin:12px 0;}
       .row{font-size:14px;margin:5px 0;}
       hr{border:0;border-top:1px dashed #000;margin:10px 0;}
     </style></head><body>
       <div class="top">PEDIDO N° ${num}</div>
-      <div class="badge">${pagado ? "PAGADO — NO COBRAR AL REPARTIDOR" : "COBRAR AL REPARTIDOR"}</div>
-      <div class="big">${money(tot)}</div>
+      <div class="big">${pagado ? "PAGADO" : money(tot)}</div>
       <hr>
       <div class="row"><b>Dirección:</b> ${dir}</div>
       <div class="row"><b>Nombre:</b> ${nom}</div>
