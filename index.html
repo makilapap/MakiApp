@@ -6,103 +6,316 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="MAKIPAP Ticket" />
-<meta name="theme-color" content="#000000" />
+<meta name="theme-color" content="#007aff" />
 <link rel="icon" type="image/png" href="icono.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="icono.png" />
 <link rel="manifest" href="manifest.json" />
 <title>MAKIPAP Ticket</title>
 <style>
   :root {
-    font-family: system-ui, -apple-system, sans-serif;
-    color:#111827;
-    background:#f5f5f5;
-    --bg:#f5f5f5;
-    --card:#fff;
-    --text:#111827;
-    --muted:#666;
-    --border:#ddd;
-    --row-border:#eee;
-    --input-bg:#fff;
-    --textarea-bg:#fafafa;
-    --tot-bg:#fff8e1;
-    --sechdr-bg:#e8e8e8;
-    --th-bg:#333;
-    --nav-bg:#263238;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+    color:#000000;
+    background:#f2f2f7;
+    --bg:#f2f2f7;
+    --card:#ffffff;
+    --text:#000000;
+    --muted:#8e8e93;
+    --border:#c6c6c8;
+    --row-border:#e5e5ea;
+    --input-bg:#f2f2f7;
+    --textarea-bg:#f2f2f7;
+    --tot-bg:#eef6ff;
+    --sechdr-bg:#e5e5ea;
+    --th-bg:#007aff;
+    --nav-bg:rgba(249, 249, 249, 0.88);
+    --header-bg:rgba(249, 249, 249, 0.88);
+    --ios-blue:#007aff;
+    --ios-green:#34c759;
+    --ios-orange:#ff9500;
+    --ios-red:#ff3b30;
+    --ios-indigo:#5856d6;
+    --ios-teal:#30b0c7;
+    --ios-gray:#8e8e93;
   }
   body.dark {
-    color:#e5e7eb;
-    background:#0f172a;
-    --bg:#0f172a;
-    --card:#1e293b;
-    --text:#e5e7eb;
-    --muted:#94a3b8;
-    --border:#334155;
-    --row-border:#293548;
-    --input-bg:#0f172a;
-    --textarea-bg:#0f172a;
-    --tot-bg:#2d2410;
-    --sechdr-bg:#334155;
-    --th-bg:#0f172a;
-    --nav-bg:#111827;
+    color:#ffffff;
+    background:#000000;
+    --bg:#000000;
+    --card:#1c1c1e;
+    --text:#ffffff;
+    --muted:#8e8e93;
+    --border:#38383a;
+    --row-border:#2c2c2e;
+    --input-bg:#2c2c2e;
+    --textarea-bg:#1c1c1e;
+    --tot-bg:#162436;
+    --sechdr-bg:#2c2c2e;
+    --th-bg:#0a84ff;
+    --nav-bg:rgba(28, 28, 30, 0.88);
+    --header-bg:rgba(28, 28, 30, 0.88);
+    --ios-blue:#0a84ff;
+    --ios-green:#30d158;
+    --ios-orange:#ff9f0a;
+    --ios-red:#ff453a;
+    --ios-indigo:#5e5ce6;
+    --ios-teal:#40c8e0;
+    --ios-gray:#8e8e93;
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin:0; padding-bottom:80px; -webkit-text-size-adjust: 100%; background:var(--bg); color:var(--text); transition: background .2s, color .2s; }
-  header { background:#1a1a2e; color:#fff; padding:12px 14px; position:sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  header h1 { margin:0; font-size:17px; }
-  header small { color:#aaa; font-size:11px; }
-  .theme-btn { background:#2e3a59; color:#fff; border:1px solid #475569; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:bold; cursor:pointer; white-space:nowrap; }
-  #bannerTri, #bannerStock { font-size:12px; font-weight:bold; color:#fff; padding:8px 12px; cursor:pointer; }
-  nav { position:fixed; bottom:0; left:0; right:0; display:flex; background:var(--nav-bg); z-index:10; padding-bottom:env(safe-area-inset-bottom); box-shadow: 0 -2px 5px rgba(0,0,0,0.2); overflow-x: auto; }
-  nav button { flex:1; min-width: 65px; background:none; border:none; color:#cfd8dc; font-size:10px; padding:8px 2px; cursor:pointer; white-space: nowrap; }
-  nav button.active { color:#ffb300; font-weight:bold; }
-  nav span { display:block; font-size:18px; }
-  section.tab { display:none; padding:10px; max-width:640px; margin:0 auto; }
+  body {
+    margin:0;
+    padding-bottom:88px;
+    -webkit-text-size-adjust: 100%;
+    background:var(--bg);
+    color:var(--text);
+    transition: background .2s, color .2s;
+  }
+  header {
+    background:var(--header-bg);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    color:var(--text);
+    padding:12px 16px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    position:sticky;
+    top:0;
+    z-index:10;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    border-bottom:0.5px solid var(--border);
+  }
+  header h1 { margin:0; font-size:18px; font-weight:700; letter-spacing:-0.4px; }
+  header small { color:var(--muted); font-size:11px; font-weight:500; display:block; margin-top:1px; }
+  .theme-btn {
+    background:var(--input-bg);
+    color:var(--ios-blue);
+    border:none;
+    border-radius:999px;
+    padding:7px 13px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  #bannerTri, #bannerStock {
+    font-size:12px;
+    font-weight:600;
+    color:#fff;
+    padding:8px 16px;
+    cursor:pointer;
+    letter-spacing:-0.1px;
+  }
+  nav {
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    display:flex;
+    background:var(--nav-bg);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    z-index:10;
+    padding-top:4px;
+    padding-bottom:max(6px, env(safe-area-inset-bottom));
+    border-top:0.5px solid var(--border);
+    overflow-x: auto;
+  }
+  nav button {
+    flex:1;
+    min-width: 65px;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:500;
+    padding:4px 2px;
+    cursor:pointer;
+    white-space: nowrap;
+  }
+  nav button.active { color:var(--ios-blue); font-weight:600; }
+  nav span { display:block; font-size:20px; margin-bottom:2px; }
+  section.tab { display:none; padding:12px 14px; max-width:640px; margin:0 auto; }
   section.tab.active { display:block; }
-  .card { background:var(--card); border-radius:10px; padding:12px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,.18); }
-  .menurow { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--row-border); }
-  .menurow .nm { flex:1; font-size:14px; }
-  .menurow .pr { color:#22c55e; font-size:13px; width:72px; text-align:right; }
-  body:not(.dark) .menurow .pr { color:#006600; }
-  .menurow input { width:52px; text-align:center; font-size:16px; padding:6px 4px; border:1px solid var(--border); border-radius:6px; background:var(--input-bg); color:var(--text); }
-  button.btn { border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:bold; color:#fff; width:100%; margin:6px 0; cursor:pointer; }
-  .g { background:#2e7d32; } .b { background:#1565c0; } .w { background:#25d366; }
-  .o { background:#ef6c00; } .r { background:#c62828; } .gr { background:#78909c; } .tl { background:#00838f; } .pu { background:#6a1b9a; }
-  .tot { display:flex; justify-content:space-between; background:var(--tot-bg); padding:10px; border-radius:8px; font-size:15px; }
-  .tot b { color:#ef4444; font-size:18px; }
-  body:not(.dark) .tot b { color:#c62828; }
-  textarea { width:100%; font-family:monospace; font-size:12px; min-height:150px; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--textarea-bg); color:var(--text); resize:vertical; }
-  input.sel, select.sel { width:100%; padding:10px; font-size:15px; margin:4px 0; border:1px solid var(--border); border-radius:8px; background:var(--input-bg); color:var(--text); }
-  label.fld { font-size:12px; color:var(--muted); display:block; margin-top:6px; }
-  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
-  th, td { border:1px solid var(--border); padding:6px; text-align:right; }
-  th { background:var(--th-bg); color:#fff; }
+  .card {
+    background:var(--card);
+    border-radius:16px;
+    padding:15px 16px;
+    margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04);
+  }
+  .menurow {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 0;
+    border-bottom:0.5px solid var(--row-border);
+  }
+  .menurow:last-of-type { border-bottom:none; }
+  .menurow .nm { flex:1; font-size:15px; font-weight:400; letter-spacing:-0.2px; }
+  .menurow .pr { color:var(--muted); font-size:14px; font-weight:500; width:76px; text-align:right; }
+  .menurow input {
+    width:58px;
+    text-align:center;
+    font-size:16px;
+    font-weight:600;
+    padding:7px 4px;
+    border:none;
+    border-radius:10px;
+    background:var(--input-bg);
+    color:var(--text);
+  }
+  button.btn {
+    border:none;
+    border-radius:12px;
+    padding:13px 16px;
+    font-size:16px;
+    font-weight:600;
+    letter-spacing:-0.2px;
+    color:#fff;
+    width:100%;
+    margin:6px 0;
+    cursor:pointer;
+    transition: opacity .15s, transform .08s;
+  }
+  button.btn:active { transform:scale(0.985); opacity:0.85; }
+  .g { background:var(--ios-green); }
+  .b { background:var(--ios-blue); }
+  .w { background:#25d366; }
+  .o { background:var(--ios-orange); }
+  .r { background:var(--ios-red); }
+  .gr { background:var(--ios-gray); }
+  .tl { background:var(--ios-teal); }
+  .pu { background:var(--ios-indigo); }
+  .tot {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--tot-bg);
+    padding:12px 14px;
+    border-radius:12px;
+    font-size:14px;
+  }
+  .tot b { color:var(--ios-blue); font-size:18px; font-weight:700; }
+  textarea {
+    width:100%;
+    font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size:12px;
+    min-height:150px;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    background:var(--textarea-bg);
+    color:var(--text);
+    resize:vertical;
+    margin-top:6px;
+  }
+  input.sel, select.sel {
+    width:100%;
+    padding:11px 13px;
+    font-size:16px;
+    margin:4px 0 6px 0;
+    border:none;
+    border-radius:11px;
+    background:var(--input-bg);
+    color:var(--text);
+    -webkit-appearance: none;
+  }
+  input.sel:focus, select.sel:focus {
+    outline:2px solid var(--ios-blue);
+    background:var(--card);
+  }
+  label.fld {
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    display:block;
+    margin-top:8px;
+    margin-left:2px;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+  }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; border-radius:10px; overflow:hidden; }
+  th, td { border-bottom:0.5px solid var(--row-border); padding:8px 6px; text-align:right; }
+  th { background:var(--th-bg); color:#fff; font-weight:600; }
   td:first-child, th:first-child { text-align:left; }
-  .stockrow { display:flex; align-items:center; gap:6px; padding:5px 0; border-bottom:1px solid var(--row-border); font-size:13px; }
+  .stockrow {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 0;
+    border-bottom:0.5px solid var(--row-border);
+    font-size:14px;
+  }
+  .stockrow:last-of-type { border-bottom:none; }
   .stockrow .nm { flex:1; }
-  .stockrow .ind { width:16px; height:16px; border-radius:4px; flex:none; }
-  .stockrow input, .stockrow select { font-size:13px; padding:4px; border:1px solid var(--border); border-radius:6px; background:var(--input-bg); color:var(--text); }
-  h2 { font-size:16px; margin:6px 0; }
-  .muted { color:var(--muted); font-size:12px; }
-  .sechdr { background:var(--sechdr-bg); font-weight:bold; padding:6px 8px; border-radius:6px; margin-top:10px; }
-  .alerta { padding:8px 10px; border-radius:8px; color:#fff; font-size:13px; font-weight:bold; margin-bottom:8px; }
-  .tag-nov { display:inline-block; font-size:10px; padding:1px 5px; border-radius:4px; margin-left:4px; background:#fef3c7; color:#92400e; font-weight:bold; }
-  body.dark .tag-nov { background:#451a03; color:#fde68a; }
-  .envase-ticket { border:2px dashed var(--border); border-radius:10px; padding:12px; margin-top:10px; background:var(--textarea-bg); }
-  .envase-num { font-size:24px; font-weight:900; text-align:center; letter-spacing:1px; }
-  .envase-tot { font-size:32px; font-weight:900; text-align:center; margin:8px 0; color:#ef4444; }
-  body:not(.dark) .envase-tot { color:#c62828; }
-  .envase-pagado { font-size:30px; font-weight:900; text-align:center; margin:8px 0; padding:6px 10px; border-radius:8px; background:#dcfce7; color:#166534; }
-  body.dark .envase-pagado { background:#14532d; color:#bbf7d0; }
-  .btn-mini { border:none; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:bold; color:#fff; cursor:pointer; }
+  .stockrow .ind { width:12px; height:12px; border-radius:50%; flex:none; }
+  .stockrow input, .stockrow select {
+    font-size:14px;
+    padding:6px 8px;
+    border:none;
+    border-radius:9px;
+    background:var(--input-bg);
+    color:var(--text);
+  }
+  h2 { font-size:18px; font-weight:700; letter-spacing:-0.3px; margin:2px 0 10px 0; }
+  .muted { color:var(--muted); font-size:13px; line-height:1.4; }
+  .sechdr {
+    background:var(--sechdr-bg);
+    color:var(--muted);
+    font-weight:700;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    padding:7px 11px;
+    border-radius:9px;
+    margin-top:12px;
+    margin-bottom:4px;
+  }
+  .alerta { padding:10px 13px; border-radius:12px; color:#fff; font-size:13px; font-weight:600; margin-bottom:10px; }
+  .tag-nov {
+    display:inline-block;
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:999px;
+    margin-left:4px;
+    background:rgba(0, 122, 255, 0.14);
+    color:var(--ios-blue);
+    font-weight:600;
+  }
+  .envase-ticket {
+    border:1.5px dashed var(--border);
+    border-radius:14px;
+    padding:14px;
+    margin:10px 0;
+    background:var(--textarea-bg);
+  }
+  .envase-num { font-size:21px; font-weight:800; text-align:center; letter-spacing:-0.3px; }
+  .envase-tot { font-size:34px; font-weight:800; text-align:center; margin:8px 0; color:var(--ios-blue); letter-spacing:-0.5px; }
+  .envase-pagado {
+    font-size:28px;
+    font-weight:800;
+    text-align:center;
+    margin:8px 0;
+    padding:7px 12px;
+    border-radius:12px;
+    background:rgba(52, 199, 89, 0.16);
+    color:var(--ios-green);
+  }
+  .btn-mini { border:none; border-radius:8px; padding:5px 9px; font-size:12px; font-weight:600; color:#fff; cursor:pointer; }
 </style>
 </head>
 <body>
 <header>
-  <h1>🍣 MAKIPAP EIRL <small>RUT 78.519.024-6</small></h1>
+  <div>
+    <h1>MAKIPAP EIRL</h1>
+    <small>RUT 78.519.024-6</small>
+  </div>
   <button class="theme-btn" id="btnTema" onclick="toggleTema()">🌙 Oscuro</button>
 </header>
-<div id="bannerTri" style="background:#2e7d32" onclick="showTab('imp')"></div>
-<div id="bannerStock" style="background:#4e342e" onclick="showTab('stock')"></div>
+<div id="bannerTri" style="background:#007aff" onclick="showTab('imp')"></div>
+<div id="bannerStock" style="background:#3a3a3c" onclick="showTab('stock')"></div>
 
 <nav>
   <button data-t="pos" class="active" onclick="showTab('pos')"><span>🛒</span>Pedido</button>
@@ -142,7 +355,7 @@
     <div class="envase-ticket" id="ticketEnvaseBox">
       <div class="envase-num" id="envNum">PEDIDO N° ---</div>
       <div id="envTotal" class="envase-tot">$0</div>
-      <div id="envDetalle" style="font-size:13px; line-height:1.45;"></div>
+      <div id="envDetalle" style="font-size:14px; line-height:1.45;"></div>
     </div>
 
     <button class="btn b" onclick="imprimirTicketEnvase()">🖨 Imprimir Ticket Envase</button>
@@ -201,8 +414,8 @@
     <div id="outSueldos"></div>
     <button class="btn w" onclick="enviarSueldosCindyWsp()">📤 Enviar estado de sueldos a Cindy (WhatsApp)</button>
 
-    <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--row-border);">
-      <h3 style="font-size:14px; margin:4px 0;">Marcar día como Ausente o Feriado</h3>
+    <div style="margin-top:14px; padding-top:12px; border-top:0.5px solid var(--row-border);">
+      <h3 style="font-size:15px; margin:4px 0;">Marcar día como Ausente o Feriado</h3>
       <label class="fld">Fecha</label>
       <input class="sel" id="novFecha" type="date">
       <label class="fld">Persona</label>
@@ -215,7 +428,7 @@
       <button class="btn gr" onclick="marcarNovedadSueldo()">🗓 Aplicar Ausente / Feriado</button>
     </div>
 
-    <label class="fld" style="margin-top:12px;">Retirar sueldo de (máx 10 días hábiles)</label>
+    <label class="fld" style="margin-top:14px;">Retirar sueldo de (máx 10 días hábiles)</label>
     <select class="sel" id="personaSel"><option>Cindy</option><option>Claudio</option></select>
     <button class="btn g" onclick="retirarSueldo()">💰 Generar retiro de sueldo</button>
     <button class="btn b" onclick="exportarPagosPdf()">📄 Guardar Pagos (Sueldos + Repartidor) en PDF</button>
@@ -316,7 +529,7 @@
 const EMPRESA="MAKIPAP EIRL", RUT="78.519.024-6", GIRO="Elaboración y venta de sushi con retiro o reparto a domicilio";
 const IVA=0.19, PPM=0.002, SUELDO_PCT=0.27, SUELDO_MIN=20000, UMBRAL_VENTAS=67000;
 const DIAS_PERIODO=10, INICIO_CLAUDIO="2026-11-09";
-const MENU=[["MAKI 1",8000],["MAKI 2",10000],["MAKI 3",12000],["MAKI 4",14000],["MAKI 5",17000],
+const MENU=[["Maki 0",5000],["MAKI 1",8000],["MAKI 2",10000],["MAKI 3",12000],["MAKI 4",14000],["MAKI 5",17000],
 ["Maki Burger de pollo",7000],["Maki Burger de Camarón",8000],["Handroll de pollo",3000],
 ["Handroll de Kanikama",3000],["Handroll de Palmito",3000],["Handroll de Camarón",4000],
 ["Handroll de pollo teriyaki",4000],["Promo de Handroll",8000],["Salsa de Soya adicional",500],
@@ -325,11 +538,12 @@ const CATALOGO=[
 ["Insumos de Sushi","Pollo","numero","kilos"],["Insumos de Sushi","Camarón","numero","kilos"],
 ["Insumos de Sushi","Kanikama","numero","kilos"],["Insumos de Sushi","Queso crema","numero","unidades"],
 ["Insumos de Sushi","Arroz","numero","kilos"],["Insumos de Sushi","Nori","numero","unidades"],
-["Insumos de Sushi","Panko","numero","kilos"],["Insumos de Sushi","Vinagre","numero","litros"],
-["Insumos de Sushi","Salsa de Soya","numero","litros"],["Insumos de Sushi","Salsa teriyaki","numero","litros"],
-["Insumos de Sushi","Palmitos","numero","unidades"],["Insumos de Sushi","Aceite","numero","litros"],
-["Insumos de Sushi","Azúcar","numero","kilos"],["Insumos de Sushi","Huevo en polvo","numero","unidades"],
-["Insumos de Sushi","Sal","numero","kilos"],["Insumos de Sushi","Gas","gas",""],
+["Insumos de Sushi","Panko","numero","kilos"],["Insumos de Sushi","Harina","nivel3",""],
+["Insumos de Sushi","Vinagre","numero","litros"],["Insumos de Sushi","Salsa de Soya","numero","litros"],
+["Insumos de Sushi","Salsa teriyaki","numero","litros"],["Insumos de Sushi","Palmitos","numero","unidades"],
+["Insumos de Sushi","Aceite","numero","litros"],["Insumos de Sushi","Azúcar","numero","kilos"],
+["Insumos de Sushi","Huevo en polvo","numero","unidades"],["Insumos de Sushi","Sal","numero","kilos"],
+["Insumos de Sushi","Gas","gas",""],
 ["Vegetales","Palta","nivel3",""],["Vegetales","Cebollín","nivel3",""],["Vegetales","Morrón","nivel3",""],["Vegetales","Sésamo","nivel3",""],
 ["Accesorios","Envases de 2 rolls","nivel3",""],["Accesorios","Envases de 3 rolls","nivel3",""],
 ["Accesorios","Pocillos 1oz","nivel3",""],["Accesorios","Pocillos 1,5oz","nivel3",""],
@@ -409,9 +623,9 @@ function nivelStock(tipo,valor,umbral){
     const u=parseFloat(String(umbral).replace(",","."))||2;
     return n<=0?"critico":(n<=u?"bajo":"ok"); }
   if(tipo==="gas") return v==="vacio"?"critico":(v==="poco"?"bajo":"ok");
-  return (v==="sin stock"||v==="sin")?"critico":((v==="poco stock"||v==="poco")?"bajo":"ok");
+  return (v==="sin stock"||v==="sin")?"critico":((v==="poco stock"||v==="bajo stock"||v==="poco")?"bajo":"ok");
 }
-function colorNivel(n){ return n==="critico"?"#ffcdd2":(n==="bajo"?"#ffe0b2":"#c8e6c9"); }
+function colorNivel(n){ return n==="critico"?"#ff3b30":(n==="bajo"?"#ff9500":"#34c759"); }
 
 // ================= NAVEGACIÓN =================
 function showTab(t){
@@ -436,10 +650,10 @@ function buildMenu(){
   el.innerHTML="<h2>Carta / Menú</h2>" + MENU.map(([n,p])=>
     `<div class="menurow"><span class="nm">${n}</span><span class="pr">${money(p)}</span>
      <input type="number" pattern="[0-9]*" inputmode="numeric" min="0" max="50" value="0" data-n="${n}" oninput="cant['${n}']=parseInt(this.value)||0;syncTotalMenu();updPreview()"></div>`).join("")
-    + `<h2>Cobro manual</h2>
+    + `<h2 style="margin-top:14px;">Cobro manual</h2>
        <label class="fld">Nombre</label><input class="sel" id="mNom" placeholder="Detalle extra">
        <label class="fld">Precio $</label><input class="sel" id="mPre" type="number" pattern="[0-9]*" inputmode="numeric" min="0">
-       <button class="btn g" onclick="addManual()">+ Agregar ítem manual</button>
+       <button class="btn b" onclick="addManual()">+ Agregar ítem manual</button>
        <div id="manuales"></div>`;
   renderManuales();
   updTicketEnvase();
@@ -450,7 +664,7 @@ function renderManuales(){
   if(!container) return;
   container.innerHTML = manualItems.map((m,i)=>
     `<div class="menurow"><span class="nm">${m.nombre}</span><span class="pr">${money(m.precio)}</span>
-     <button class="btn r" style="width:auto;padding:4px 10px;margin:0" onclick="manualItems.splice(${i},1);renderManuales();syncTotalMenu();updPreview()">✕</button></div>`).join("");
+     <button class="btn r" style="width:auto;padding:5px 11px;margin:0;border-radius:9px;" onclick="manualItems.splice(${i},1);renderManuales();syncTotalMenu();updPreview()">✕</button></div>`).join("");
 }
 function addManual(){
   const n=document.getElementById("mNom").value.trim()||"Cobro manual";
@@ -579,7 +793,7 @@ function imprimirTicketEnvase(){
   win.document.write(`
     <!doctype html><html><head><title>Ticket Envase #${num}</title>
     <style>
-      body{font-family:system-ui,-apple-system,sans-serif;padding:14px;max-width:300px;margin:0 auto;color:#000;}
+      body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:14px;max-width:300px;margin:0 auto;color:#000;}
       .top{font-size:24px;font-weight:900;text-align:center;border-bottom:2px solid #000;padding-bottom:6px;}
       .big{font-size:34px;font-weight:900;text-align:center;margin:12px 0;}
       .row{font-size:14px;margin:5px 0;}
@@ -868,7 +1082,7 @@ function renderSueldos(){
       const tagL = s.novL ? `<span class="tag-nov">${s.novL}</span>` : (s.pagL ? " ✓" : "");
       return `<tr><td>${f}</td><td>${money(s.totalDia)}</td><td>${money(s.cindy)}${tagC}</td><td>${money(s.claudio)}${tagL}</td></tr>`;
     }).join("")+"</table>" +
-    `<h3 style="font-size:13px;margin-top:10px;">Pagos recientes registrados</h3>` +
+    `<h3 style="font-size:14px;margin-top:12px;">Pagos recientes registrados</h3>` +
     `<table><tr><th>Fecha</th><th>Persona</th><th>Monto</th></tr>${ultimosPagos || "<tr><td colspan=3>Sin pagos registrados</td></tr>"}</table>`;
 }
 function enviarSueldosCindyWsp(){
@@ -982,7 +1196,7 @@ function exportarPagosPdf(){
   win.document.write(`
     <!doctype html><html><head><title>Registro de Pagos - ${EMPRESA}</title>
     <style>
-      body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111;}
+      body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;color:#111;}
       h1{margin:0 0 4px 0;font-size:20px;}
       table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
       th,td{border:1px solid #888;padding:7px;text-align:left;}
@@ -1117,7 +1331,7 @@ function renderStock(){
         ? `<input id="st_${id(sec,nom)}_v" value="${r.valor}" size="5" inputmode="decimal">
            <input id="st_${id(sec,nom)}_u" value="${r.umbral}" size="4" inputmode="decimal">`
         : `<select id="st_${id(sec,nom)}_v">`+
-          (tipo==="gas"?["vacio","poco","normal"]:["sin stock","poco stock","stock normal"])
+          (tipo==="gas"?["vacio","poco","normal"]:["sin stock","bajo stock","stock normal"])
             .map(o=>`<option ${o===r.valor?"selected":""}>${o}</option>`).join("")+"</select>";
       html+=`<div class="stockrow"><span class="ind" id="st_${id(sec,nom)}_i" style="background:${colorNivel(n)}"></span>
              <span class="nm">${label}</span>${ctrl}
@@ -1149,8 +1363,8 @@ function updStockBanner(){
   });
   const el=document.getElementById("stockAlerta");
   if(el) el.innerHTML = (crit||bajo)
-    ? `<div class="alerta" style="background:${crit?"#b71c1c":"#e65100"}">⚠ Alertas: ${crit} crítico(s), ${bajo} bajo(s).</div>`
-    : `<div class="alerta" style="background:#2e7d32">✓ Sin alertas de stock.</div>`;
+    ? `<div class="alerta" style="background:${crit?"#ff3b30":"#ff9500"}">⚠ Alertas: ${crit} crítico(s), ${bajo} bajo(s).</div>`
+    : `<div class="alerta" style="background:#34c759">✓ Sin alertas de stock.</div>`;
 }
 function guardarStock(){
   CATALOGO.forEach(([sec,nom,tipo,un])=>{
@@ -1191,7 +1405,7 @@ function renderImp(){
   const {venc,dias,mesStr,anioD,mesD}=proximoF29();
   const est=resumenMes(anioD,mesD);
   const b=document.getElementById("bannerTri");
-  if(b){ b.style.background = dias<=5?"#b71c1c":"#2e7d32"; b.textContent=`⚠ Próximo F29 (${mesStr}): ${fmt(venc)} — Est: ${money(est.pago)}`; }
+  if(b){ b.style.background = dias<=5?"#ff3b30":"#007aff"; b.textContent=`⚠ Próximo F29 (${mesStr}): ${fmt(venc)} — Est: ${money(est.pago)}`; }
   const card = document.getElementById("impCard");
   if(card){
     card.innerHTML=`
